@@ -1,0 +1,15 @@
+Start forward of X with
+
+    $ ssh -X diku@ip.of.computer -i path/to/keyfile
+
+Start virtual machine on screen just opened
+
+    $ vmplayer
+
+Connect to machine with ssh
+
+    $ ssh diku@ip.of.computer -i path/to/keyfile
+
+Start program controlling robot
+
+    $ ./path/to/program
