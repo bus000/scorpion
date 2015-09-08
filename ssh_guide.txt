@@ -13,3 +13,5 @@ Connect to machine with ssh
 Start program controlling robot
 
     $ ./path/to/program
+
+Det virker ikke drenqe.
