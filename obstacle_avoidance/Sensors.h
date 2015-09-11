@@ -5,7 +5,7 @@
 #include "Sensor.h"
 using namespace PlayerCc;
 
-#define SENSOR_NUMBER 12 /* Update when updating list. */
+#define SENSOR_NUMBER 13 /* Update when updating list. */
 
 class Sensors {
     private:

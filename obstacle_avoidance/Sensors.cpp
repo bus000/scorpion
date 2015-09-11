@@ -1,6 +1,8 @@
 #include "Sensors.h"
+#include <stdio.h>
 
 Sensors::Sensors(PlayerClient *robot, int filterStrength) {
+    this->robot = robot;
     IrProxy *ir = new IrProxy(robot);
 
     for (int i = 0; i < SENSOR_NUMBER; i++) {
@@ -9,6 +11,8 @@ Sensors::Sensors(PlayerClient *robot, int filterStrength) {
 
     this->ir = ir;
 }
+
+Sensors::~Sensors() {}
 
 void Sensors::update(void) {
     robot->Read();

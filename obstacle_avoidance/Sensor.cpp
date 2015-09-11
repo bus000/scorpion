@@ -1,4 +1,5 @@
 #include "Sensor.h"
+#include <stdio.h>
 
 Sensor::Sensor(IrProxy *ir, int sensorID, int filterStrength) {
 	this->ir = ir;
@@ -14,8 +15,9 @@ Sensor::Sensor(IrProxy *ir, int sensorID, int filterStrength) {
 double Sensor::read() {
 	double sum = 0.0;
 
-	for (int i = 0; i < this->filterStrength; i++)
+	for (int i = 0; i < this->filterStrength; i++){
 		sum += this->measurements[i];
+    }
 
 	return sum / this->filterStrength;
 }
@@ -26,4 +28,5 @@ void Sensor::update(void) {
 	}
 	this->measurements[this->filterStrength - 1] =
         this->ir->GetRange(this->sensorID);
+    printf("\n\n%f\n\n", this->measurements[this->filterStrength - 1]);
 }
