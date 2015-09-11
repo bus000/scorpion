@@ -25,9 +25,9 @@ int main(int argc, char *argv[]) {
 	Sensors sensors(&robot, 4);
 	while(true){
         sensors.update();
-        double front = sensors.read(IR_bn_n),
-        double left = sensors.read(IR_bn_nw)
-        double right = sensors.read(IR_bn_ne)
+        double front = sensors.read(IR_bn_n);
+        double left = sensors.read(IR_bn_nw);
+        double right = sensors.read(IR_bn_ne);
 
         print_f("Updating:\nFront: %f\nLeft: %f\nRight: %f",
                 front, left, right);
