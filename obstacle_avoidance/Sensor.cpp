@@ -1,7 +1,6 @@
 #include "Sensor.h"
-using namespace PlayerCc;
 
-Sensor::Sensor(IrProxy &ir, int sensorID, int filterStrength) {
+Sensor::Sensor(IrProxy *ir, int sensorID, int filterStrength) {
 	this->ir = ir;
 	this->sensorID = sensorID;
 	this->filterStrength = filterStrength;
@@ -25,5 +24,6 @@ void Sensor::update(void) {
 	for (int i = 0; i < this->filterStrength - 1; i++) {
 		this->measurements[i] = this->measurements[i + 1];
 	}
-	this->measurements[this->filterStrength - 1] = this->ir->GetRange(this->sensorID);
+	this->measurements[this->filterStrength - 1] =
+        this->ir->GetRange(this->sensorID);
 }

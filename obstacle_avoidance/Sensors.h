@@ -3,26 +3,25 @@
 
 #include <libplayerc++/playerc++.h>
 #include "Sensor.h"
+using namespace PlayerCc;
 
-#define SENSOR_NUMBER 5 /* Update when updating list. */
-enum sensor_position_t {
-    FRONT, RIGHT, LEFT, BACK_RIGHT, BACK_LEFT
-}
+#define SENSOR_NUMBER 12 /* Update when updating list. */
 
 class Sensors {
     private:
-        Sensor sensors[SENSOR_NUMBER];
-        PlayerCC::PlayerClient;
+        Sensor *sensors[SENSOR_NUMBER];
+        PlayerClient *robot;
+        IrProxy *ir;
 
     public:
-        Sensors(PlayerCc::PlayerClient robot, int filterStrength);
+        Sensors(PlayerClient *robot, int filterStrength);
         ~Sensors(void);
 
         /* Updates values of all sensors. */
         void update(void);
 
         /* Return the latest value of all sensors. */
-        double read(sensor_position_t sensor_position)
-}
+        double read(int sensor_position);
+};
 
 #endif

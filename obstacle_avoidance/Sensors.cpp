@@ -1,7 +1,7 @@
 #include "Sensors.h"
 
-Sensors::Sensors(PlayerCc::PlayerClient robot, int filterStrength) {
-    PlayerCc::IrProxy ir(&robot);
+Sensors::Sensors(PlayerClient *robot, int filterStrength) {
+    IrProxy *ir = new IrProxy(robot);
 
     for (int i = 0; i < SENSOR_NUMBER; i++) {
         this->sensors[i] = new Sensor(ir, i, filterStrength);
@@ -10,14 +10,14 @@ Sensors::Sensors(PlayerCc::PlayerClient robot, int filterStrength) {
     this->ir = ir;
 }
 
-void Sensor::update(void) {
-    robot.Read();
+void Sensors::update(void) {
+    robot->Read();
 
     for (int i = 0; i < SENSOR_NUMBER; i++) {
-        this->sensors[i].update();
+        this->sensors[i]->update();
     }
 }
 
-double Sensor::read(sensor_position_t sensor_position) {
-    return this->sensors[sensor_position].read();
+double Sensors::read(int sensor_position) {
+    return this->sensors[sensor_position]->read();
 }

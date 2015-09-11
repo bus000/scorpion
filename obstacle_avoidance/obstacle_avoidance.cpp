@@ -1,42 +1,42 @@
 #include <libplayerc++/playerc++.h>
 #include <unistd.h>
-#include "Sensor.h"
+#include "Sensors.h"
+#include <math.h>
+#include <stdio.h>
 using namespace PlayerCc;
 
-#define FRONT 2
+#define FRONT_SPEED 0.5
+#define FRONT_SPEED_MOD 0.6
+#define TURN_SPEED 1.0
+#define TURN_SPEED_MOD 1.6
+
+void run(Position2dProxy *position, double sf, double sl, double sr) {
+    double speed = FRONT_SPEED * (sf - FRONT_SPEED_MOD);
+    double turn = (((sl - TURN_SPEED_MOD) * M_PI) +
+           ((sr - TURN_SPEED_MOD) * (- M_PI)))*TURN_SPEED;
+    position->SetSpeed(speed, turn);
+}
 
 PlayerClient robot("192.168.240.129");
 Position2dProxy position(&robot);
 IrProxy ir(&robot);
 
 int main(int argc, char *argv[]) {
-	//while (true) {
-		//robot.Read();
+	Sensors sensors(&robot, 4);
+	while(true){
+        sensors.update();
+        double front = sensors.read(IR_bn_n),
+        double left = sensors.read(IR_bn_nw)
+        double right = sensors.read(IR_bn_ne)
 
-		//for (int i = 0; i < ir.GetCount(); i++) {
-			//printf("%d: %f   ", i, ir.GetRange(i));
-		//}
-		//printf("\n");
-
-		//if (ir.GetRange(FRONT) < 0.5) {
-			//position.SetSpeed(-0.1, 0.0);
-			//sleep(2);
-		//}
-
-		//position.SetSpeed(0.1, 0.0);
-
-	//}
-
-	robot.Read();
-	Sensor *front = new Sensor(&ir, FRONT, 2);
-	while (true) {
-		robot.Read();
-		if (front->read() < 0.5) {
-			position.SetSpeed(-0.3, 0.0);
-		}
-
-		position.SetSpeed(0.3, 0.0);
-	}
+        print_f("Updating:\nFront: %f\nLeft: %f\nRight: %f",
+                front, left, right);
+        run(&position,
+                front,
+                left,
+                right
+        );
+    }
 
 	return 0;
 }
