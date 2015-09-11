@@ -10,11 +10,17 @@ class Sensor {
 		double *measurements;
 		int sensorID;
 		int filterStrength;
-		PlayerCc::IrProxy *ir;
+		PlayerCc::IrProxy &ir;
 
 	public:
-		Sensor(PlayerCc::IrProxy *ir, int sensorID, int filterStrength);
+		Sensor(PlayerCc::IrProxy &ir, int sensorID, int filterStrength);
+        ~Sensor(void);
+
+        /* Read a value from the sensor. */
 		double read();
+
+        /* Update the sensor value. */
+        void update(void);
 };
 
 #endif
