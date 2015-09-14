@@ -3,6 +3,7 @@
 #include "Sensors.h"
 #include <math.h>
 #include <stdio.h>
+#include <time.h>
 using namespace PlayerCc;
 
 #define IR_bn_ene 0
@@ -19,37 +20,52 @@ using namespace PlayerCc;
 #define IR_bw_s 11
 #define IR_be_s 12
 
-#define FRONT_SPEED 0.3
-#define FRONT_SPEED_MOD 0.6
+#define FRONT_SPEED 0.15
+#define FRONT_SPEED_MOD 0.4
 #define TURN_SPEED 0.25
 #define TURN_SPEED_MOD 1.6
+#define SPEED_COUNTER 3
 
-void run(Position2dProxy *position, double sf, double sl, double sr) {
-    double speed = FRONT_SPEED;//FRONT_SPEED * (sf - FRONT_SPEED_MOD);
-    double turn = (((sl - TURN_SPEED_MOD) * M_PI) +
-           ((sr - TURN_SPEED_MOD) * (- M_PI)))*TURN_SPEED;
-    position->SetSpeed(speed, turn);
+PlayerClient robot("192.168.240.129");
+Position2dProxy position(&robot);
+
+Sensors sensors(&robot, 2);
+
+void wait(int secs) {
+    time_t stop = time(NULL) + secs;
+
+    while (time(NULL) < stop)
+        sensors.update();
 }
 
-bool frontAvoid(Position2dProxy *position, double front) {
-    if((front) <= 0.3) {
-        position->SetSpeed(-1*FRONT_SPEED/2, 0);
-        sleep(1);
-        position->SetSpeed(0, M_PI/2);
-        sleep(1);
-        position->SetSpeed(0, 0);
-        return true;
-    }
+void frontAvoid(Position2dProxy *position, double front) {
+    position->SetSpeed(0, 0);
+    wait(1);
+    position->SetSpeed(-1*FRONT_SPEED, 0);
+    wait(1);
+    position->SetSpeed(0, M_PI/2);
+    wait(1);
+    position->SetSpeed(0, 0);
+    wait(1);
+}
 
-    return false;
+void run(Position2dProxy *position, double sf, double sl, double sr) {
+    static int speedCount = SPEED_COUNTER;
+    double speed = FRONT_SPEED * (sf - FRONT_SPEED_MOD);
+    double turn = (((sl - TURN_SPEED_MOD) * M_PI) +
+           ((sr - TURN_SPEED_MOD) * (- M_PI)))*TURN_SPEED;
+
+    if((sf - FRONT_SPEED_MOD) <= 0.0 && --speedCount == 0){
+        speedCount = SPEED_COUNTER;
+        printf("\nCalling frontAvoid");
+        frontAvoid(position, sf);
+    }else{
+        position->SetSpeed(speed, turn);
+    }
 }
 
 int main(int argc, char *argv[]) {
     //PlayerClient robot("localhost");
-    PlayerClient robot("192.168.240.129");
-    Position2dProxy position(&robot);
-
-	Sensors sensors(&robot, 2);
 	while(true){
         sensors.update();
         double front = sensors.read(IR_bn_n);
@@ -58,9 +74,6 @@ int main(int argc, char *argv[]) {
 
         printf("Updating:\nFront: %f\nLeft: %f\nRight: %f",
                 front, left, right);
-
-        if(frontAvoid(&position, front))
-            continue;
 
         run(&position,
                 front,
