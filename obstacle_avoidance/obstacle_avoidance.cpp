@@ -31,10 +31,24 @@ void run(Position2dProxy *position, double sf, double sl, double sr) {
     position->SetSpeed(speed, turn);
 }
 
-PlayerClient robot("192.168.240.129");
-Position2dProxy position(&robot);
+bool frontAvoid(Position2dProxy *position, double front) {
+    if((front-0.05) <= FRONT_SPEED_MOD) {
+        position->SetSpeed(-1*FRONT_SPEED/2, 0);
+        sleep(1);
+        position->SetSpeed(0, M_PI/2);
+        sleep(1);
+        position->SetSpeed(0, 0);
+        return true;
+    }
+
+    return false;
+}
 
 int main(int argc, char *argv[]) {
+    //PlayerClient robot("localhost");
+    PlayerClient robot("192.168.240.129");
+    Position2dProxy position(&robot);
+
 	Sensors sensors(&robot, 1);
 	while(true){
         sensors.update();
@@ -44,6 +58,10 @@ int main(int argc, char *argv[]) {
 
         printf("Updating:\nFront: %f\nLeft: %f\nRight: %f",
                 front, left, right);
+
+        if(frontAvoid(&position, front))
+            continue;
+
         run(&position,
                 front,
                 left,
