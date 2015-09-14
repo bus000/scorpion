@@ -17,6 +17,16 @@ double s_l = bn_wnw * 0.2 + tw_nnw * 0.4 + bn_nw * 0.4;
 * Hvis alle sensorer nedarvede fra én overklasse, kunne vi lave en instans, som have vægtning indbygget. Denne kunne f.eks. hedde `CompoundSensor` eller `SensorGroup`.
 * Hvis robotten bliver nød til at bakke, skal vi også sørge for at den drejer en smule, så den ikke sidder fast.
 
+SSH til robot-maskine
+---------------------
+```
+ssh diku@192.168.43.63
+```
+
+```
+sshfs diku@192.168.43.63:/home/diku /Your/Path -C -oallow_other 
+```
+
 Links
 -----
 * [libplayerc++ dokumentation](http://playerstage.sourceforge.net/doc/Player-cvs/player/group__player__clientlib__cplusplus.html)
