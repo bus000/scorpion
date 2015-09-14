@@ -25,14 +25,14 @@ using namespace PlayerCc;
 #define TURN_SPEED_MOD 1.6
 
 void run(Position2dProxy *position, double sf, double sl, double sr) {
-    double speed = FRONT_SPEED * (sf - FRONT_SPEED_MOD);
+    double speed = FRONT_SPEED;//FRONT_SPEED * (sf - FRONT_SPEED_MOD);
     double turn = (((sl - TURN_SPEED_MOD) * M_PI) +
            ((sr - TURN_SPEED_MOD) * (- M_PI)))*TURN_SPEED;
     position->SetSpeed(speed, turn);
 }
 
 bool frontAvoid(Position2dProxy *position, double front) {
-    if((front-0.05) <= FRONT_SPEED_MOD) {
+    if((front) <= 0.3) {
         position->SetSpeed(-1*FRONT_SPEED/2, 0);
         sleep(1);
         position->SetSpeed(0, M_PI/2);
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
     PlayerClient robot("192.168.240.129");
     Position2dProxy position(&robot);
 
-	Sensors sensors(&robot, 1);
+	Sensors sensors(&robot, 2);
 	while(true){
         sensors.update();
         double front = sensors.read(IR_bn_n);
