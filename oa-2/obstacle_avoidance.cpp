@@ -1,6 +1,7 @@
 #include <libplayerc++/playerc++.h>
 #include <unistd.h>
-#include "Sensors.h"
+#include "IrSensor.h"
+#include "SensorGroup.h"
 #include <math.h>
 #include <stdio.h>
 using namespace PlayerCc;
@@ -23,7 +24,7 @@ using namespace PlayerCc;
 #define FRONT_SPEED_MOD 0.6
 #define TURN_SPEED 0.25
 #define TURN_SPEED_MOD 1.6
-#define NUM_SAMPLES 12
+#define NUM_SAMPLES 2
 
 void run(Position2dProxy *position, double sf, double sl, double sr) {
     double speed = FRONT_SPEED * (sf - FRONT_SPEED_MOD);
@@ -42,16 +43,16 @@ int main(int argc, char *argv[]) {
   IrSensor westNorthWestIr(&robot, IR_bn_wnw);
   IrSensor eastNorthEastIr(&robot, IR_bn_ene);
 
-  SensorGroup frontIr(); 
-  frontIr.addSensor(&northIr,     0.8);
-  frontIr.addSensor(&northWestIr, 0.1);
-  frontIr.addSensor(&northEastIr, 0.1);
+  SensorGroup frontIr; 
+  frontIr.addSensor(&northIr,     0.9);
+  frontIr.addSensor(&northWestIr, 0.05);
+  frontIr.addSensor(&northEastIr, 0.05);
 
-  SensorGroup leftIr();
+  SensorGroup leftIr;
   leftIr.addSensor(&northWestIr,     0.65);
   leftIr.addSensor(&westNorthWestIr, 0.35);
 
-  SensorGroup rightIr();
+  SensorGroup rightIr;
   rightIr.addSensor(&northEastIr,     0.65);
   rightIr.addSensor(&eastNorthEastIr, 0.35);
 
@@ -61,6 +62,7 @@ int main(int argc, char *argv[]) {
         rightIr.startMeasure();
 
         for(int i = 0; i < NUM_SAMPLES; i++) {
+         robot.Read();
          frontIr.measure(); 
          leftIr.measure();
          rightIr.measure();

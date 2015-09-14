@@ -20,21 +20,22 @@ public:
     return this->weight;
   };
 
-  Sensor *sensor getSensor() {
+  Sensor *getSensor() {
     return this->sensor;
   };
-}
+};
 
 class SensorGroup: public Sensor {
 private:
   std::list<WeightedSensor*> sensors;
 
 public:
-  SensorGroup();
-  ~SensorGroup();
+  SensorGroup() {};
+  ~SensorGroup() {};
 
+  double totalWeight();
   void addSensor(Sensor *sensor, double weight);
   double read();
-}
+};
 
 #endif

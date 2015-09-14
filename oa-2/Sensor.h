@@ -7,20 +7,27 @@ using namespace PlayerCc;
 #define MAX_SENSOR 1.6
 
 class Sensor {
-private:
-  int sensorID      = 0;
-  int readings      = 0;
-  double sum        = 0;
-  double normalizer = 1.0;
+protected:
+  int sensorID;
+  int readings;
+  double sum;
+  double normalizer;
 
 public:
-  double read();
+  virtual double read() {};
+  
+  Sensor(){
+    this->sensorID   = 0;
+    this->readings   = 0;
+    this->sum        = 0;
+    this->normalizer = 1.0;
+  };
 
   /* Starts a measurement */
   void startMeasure(){
     this->sum      = 0.0;
     this->readings = 0;
-  }
+  };
 
   /* Update the sensor value. */
   void measure() {
@@ -28,12 +35,12 @@ public:
 
     this->readings += 1;
     this->sum      += reading;
-  }
+  };
 
   /* Ends a measurement */
   double endMeasure() {
     return (this->sum / this->readings) / this->normalizer;
-  }
+  };
 };
 
 #endif

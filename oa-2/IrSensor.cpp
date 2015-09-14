@@ -1,10 +1,14 @@
 #include "IrSensor.h"
+#include "stdio.h"
 
 #define MAX_SENSOR 1.6
 
+PlayerCc::IrProxy *IrSensor::ir = NULL;
+
 IrSensor::IrSensor(PlayerClient* client, int sensorID) {
-  if (ir == NULL) {
-    ir = new IrProxy(robot);
+  if (IrSensor::ir == NULL) {
+    IrSensor::ir = new IrProxy(client);
+    printf("IrSensor registered at %p", IrSensor::ir);
   }
 
 	this->sensorID = sensorID;
@@ -15,7 +19,7 @@ IrSensor::~IrSensor() {
   // NOP
 }
 
-double IrSensor::Read() {
-  return ir->GetRange(this->sensorID);  
+double IrSensor::read() {
+  return IrSensor::ir->GetRange(this->sensorID);  
 }
 

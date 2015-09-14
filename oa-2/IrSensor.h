@@ -6,12 +6,10 @@
 using namespace PlayerCc;
 
 class IrSensor: public Sensor {
-private:
-  static PlayerCc::IrProxy *ir = NULL;
-
 public:
+  static PlayerCc::IrProxy *ir;
   double read();
-  IrSensor(IrProxy *ir, int sensorID, int filterStrength);
+  IrSensor(PlayerClient* client, int sensorID);
   ~IrSensor(void);
 };
 
