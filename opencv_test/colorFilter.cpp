@@ -2,7 +2,7 @@
 #include <cmath>
 #include <stdio.h>
 
-void ColorFilter(Mat src, Mat &dest, double mu, double k) {
+void ColorFilter(Mat src, Mat &dest, double mu, double k, double minSat) {
     int nRows = src.rows;
     int nCols = src.cols*src.channels();
     dest.create(src.rows, src.cols, src.type());
@@ -19,9 +19,12 @@ void ColorFilter(Mat src, Mat &dest, double mu, double k) {
             uchar hue = rowPtr[col];
             uchar sat = rowPtr[col+1];
 
-            uchar model = round((sat/100)*(255*pow(0.5*(1+cos((hue*(M_PI/(255/2)))-mu)), k)));
-            destRowPtr[col+2] = model;
-            destRowPtr[col+1] = 0;//rowPtr[col+1];
+            uchar model = round((255*pow(0.5*(1+cos((hue*(M_PI/(180/2)))-mu)), k)));
+            if(rowPtr[col+1] > minSat)
+                destRowPtr[col+2] = model;
+            else
+                destRowPtr[col+2] = 0;
+            destRowPtr[col+1] = 0;
             destRowPtr[col] = 0;
         }
     }
