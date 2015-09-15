@@ -28,5 +28,4 @@ void Sensor::update(void) {
 	}
 	this->measurements[this->filterStrength - 1] =
         this->ir->GetRange(this->sensorID);
-    printf("\n\n%f\n\n", this->measurements[this->filterStrength - 1]);
 }

@@ -1,6 +1,6 @@
-CC = gcc
+CC = g++
 flags = `pkg-config --cflags playerc`
 libs = `pkg-config --libs playerc`
 
-eight: eight.c
+eight: obstacle_avoidance.cpp
 	$(CC) -o eight $(flags) eight.c $(libs)
