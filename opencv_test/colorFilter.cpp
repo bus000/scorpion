@@ -19,7 +19,7 @@ void ColorFilter(Mat src, Mat &dest, double mu, double k, double minSat) {
             uchar hue = rowPtr[col];
             uchar sat = rowPtr[col+1];
 
-            uchar model = round((255*pow(0.5*(1+cos((hue*(M_PI/(180/2)))-mu)), k)));
+            uchar model = round((S_MAX*pow(0.5*(1+cos((hue*(M_PI/(H_MAX/2)))-mu)), k)));
             if(rowPtr[col+1] > minSat)
                 destRowPtr[col+2] = model;
             else
