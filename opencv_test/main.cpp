@@ -33,6 +33,42 @@ void blob(Mat src, Mat &dest, int min, int max){
     drawKeypoints(src, keypoints, dest, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
 }
 
+void findGeometry(Mat src, Mat &dst) {
+  RNG rng(12345);
+
+  Mat denoized;
+  GaussianBlur(src, denoized, Size(5, 5), 0);
+  GaussianBlur(denoized, denoized, Size(5, 5), 0);
+
+  // Convert to lab
+  Mat imgLab;
+  cvtColor(denoized, imgLab, CV_BGR2Lab);
+
+  // Split channels
+  vector<Mat> channels;
+  split(imgLab, channels);
+
+  Mat threshed;
+  threshold(channels[0], threshed, 40, 255, THRESH_BINARY);
+  
+  vector<vector<Point> > contours;
+  vector<Vec4i> hierarchy;
+  findContours(threshed, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+
+  vector<vector<Point> > hull(contours.size());
+  for( int i = 0; i < contours.size(); i++ ) {
+    convexHull( Mat(contours[i]), hull[i], false );
+  }
+
+  dst = Mat::zeros(threshed.size(), CV_8UC3);
+  for( int i = 0; i< contours.size(); i++ )
+  {
+    Scalar color = Scalar(255, 255, 255);
+    drawContours( dst, contours, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
+    drawContours( dst, hull, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
+  }
+}
+
 int main(int argc, char **argv) {
     VideoCapture capture(0);
 
@@ -48,7 +84,7 @@ int main(int argc, char **argv) {
     int satWeight = 100;
     int min = 10;
     int max = 100;
-    int minSat = 0;
+    int minSat = 50;
     namedWindow("MyVideo", CV_WINDOW_NORMAL);
     createTrackbar("k:", "MyVideo", &k, 1000);
     createTrackbar("mu:", "MyVideo", &mu, 255);
@@ -67,14 +103,18 @@ int main(int argc, char **argv) {
             break;
         }
 
+        resize(frame, frame, Size(), 0.5, 0.5);
+
         cvtColor(frame, frameHSV, COLOR_BGR2HSV);
         split(frameHSV, channels);
 
         ColorFilter(frameHSV, redOnly, (double)mu, (double)k, (double)minSat);
         cvtColor(redOnly, redOnlyBGR, COLOR_HSV2BGR);
-        blob(redOnlyBGR, withKeyPoints, min, max);
 
-        imshow("MyVideo", withKeyPoints);
+        Mat geom;
+        findGeometry(redOnly, geom);
+
+        imshow("MyVideo", geom);
 
         int key = waitKey(30);
         if(key == 27)
