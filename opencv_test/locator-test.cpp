@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
         int key = waitKey(30);
         if(key == 27)
             break;
+        delete hull;
     }
 
     return 0;
