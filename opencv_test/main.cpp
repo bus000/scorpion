@@ -9,31 +9,20 @@
 using namespace cv;
 using namespace std;
 
-void blob(Mat src, Mat &dest, int min, int max){
-    SimpleBlobDetector::Params params;
+double hullCircum(vector<Point> hull) {
+  double circum = 0.0;
 
-    params.filterByArea = true;
-    params.minArea = 50;
-    params.maxArea = 200;
+  for (int i = 1; i < hull.size(); i++) {
+    Point a = hull[i-1];
+    Point b = hull[i];
 
-    params.filterByCircularity = true;
-    params.minCircularity = 0.735;
-    params.maxCircularity = 0.815;
+    circum += norm(b - a); 
+  }
 
-    params.minThreshold = min;
-    params.maxThreshold = max;
-
-    SimpleBlobDetector detector(params);
-
-    vector<KeyPoint> keypoints;
-
-    KeyPoint k;
-
-    detector.detect(src, keypoints);
-    drawKeypoints(src, keypoints, dest, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+  return abs(circum);
 }
 
-void findGeometry(Mat src, Mat &dst) {
+Point findGeometry(Mat src, Mat &dst) {
   RNG rng(12345);
 
   Mat denoized;
@@ -60,13 +49,42 @@ void findGeometry(Mat src, Mat &dst) {
     convexHull( Mat(contours[i]), hull[i], false );
   }
 
+
+  vector<Point> biggestHull;
+  double biggetCirc = 0.0;
+
+  for (int i = 0; i < hull.size(); i++) {
+    double circ = hullCircum(hull[i]);
+
+    if (circ > biggetCirc) {
+      biggetCirc = circ;
+      biggestHull = hull[i];
+    }
+  }
+
+  printf("Biggest circ: %f\n", biggetCirc);
+  
   dst = Mat::zeros(threshed.size(), CV_8UC3);
-  for( int i = 0; i< contours.size(); i++ )
+  for( int i = 1; i< biggestHull.size(); i++ )
   {
     Scalar color = Scalar(255, 255, 255);
-    drawContours( dst, contours, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
-    drawContours( dst, hull, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
+    Point a = biggestHull[i-1];
+    Point b = biggestHull[i];
+
+    line(dst, a, b, color);
   }
+
+  Point sum(0.0, 0.0);
+  int count = 0;
+
+  for (int j = 0; j < biggestHull.size(); j++) {
+    sum += biggestHull[j];
+    count += 1;
+  }
+
+  Point center = sum * (1.0/(double)count);
+  
+  return center;
 }
 
 int main(int argc, char **argv) {
@@ -112,7 +130,9 @@ int main(int argc, char **argv) {
         cvtColor(redOnly, redOnlyBGR, COLOR_HSV2BGR);
 
         Mat geom;
-        findGeometry(redOnly, geom);
+        Point center = findGeometry(redOnly, geom);
+ 
+        circle(geom, center, 20, Scalar(0, 0, 255), 3);
 
         imshow("MyVideo", geom);
 
