@@ -15,3 +15,4 @@ Start program controlling robot
     $ ./path/to/program
 
 Det virker ikke drenqe.
+Det virker fint Pelle
