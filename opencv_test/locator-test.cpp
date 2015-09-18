@@ -22,6 +22,8 @@ int main(int argc, char **argv) {
         vector<Point> *hull = getHull(frame);
         if (hull != NULL) {
             drawHull(*hull, Scalar(255, 255, 255), dest);
+            Point center = hullCenter(*hull);
+            circle(dest, center, 20, Scalar(0, 0, 255), 3);
         }
         
         imshow("videoWindow", dest);
