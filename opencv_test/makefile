@@ -1,10 +1,10 @@
 CC = g++ -g
 flags = `pkg-config --cflags opencv`
 libs = `pkg-config --libs opencv`
-sources = $(wildcard *.cpp)
+sources = locator-test.cpp locator.cpp colorFilter.cpp
 output = opencv
 
-obstacle_avoidance: $(sources)
+openvc: $(sources)
 	$(CC) -o $(output) $(flags) $(sources) $(libs)
 
 clean:

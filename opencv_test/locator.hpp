@@ -8,11 +8,12 @@
 #include <iostream>
 #include "colorFilter.hpp"
 #include <vector>
+#include <string>
 
 using namespace cv;
 using namespace std;
 
-void initHull();
+void initHullWindow(string windowName);
 
 void drawHull(vector<Point> hull, Scalar color, Mat &dst);
 
@@ -22,6 +23,6 @@ Point hullCenter(vector<Point> hull);
 
 vector<Point> *findHull(Mat src);
 
-vector<Point>* getHull(Mat src, double mu, double k, double minSat);
+vector<Point>* getHull(Mat src);
 
 #endif
