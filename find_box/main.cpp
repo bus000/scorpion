@@ -118,20 +118,22 @@ int main(int argc, char **argv){
 
     initHullWindow("videoWindow");
 
-    while (true) {
-        if(!capture->read(frame)){
-            cout << "Cannot read frame" << endl;
-            break;
-        }
+    findRedBox();
 
-        vector<Point> *hull = getHull(frame);
-        drawWindow(hull);
+    //while (true) {
+    //    if(!capture->read(frame)){
+    //        cout << "Cannot read frame" << endl;
+    //        break;
+    //    }
 
-        int key = waitKey(30);
-        if(key == 27)
-            break;
-        delete hull;
-    }
+    //    vector<Point> *hull = getHull(frame);
+    //    drawWindow(hull);
+
+    //    int key = waitKey(30);
+    //    if(key == 27)
+    //        break;
+    //    delete hull;
+    //}
 
     return 0;
 }
