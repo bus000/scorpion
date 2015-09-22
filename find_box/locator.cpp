@@ -3,9 +3,8 @@
 
 
 int mu = 0;
-int k = 150;
-int satWeight = 100;
-int minSat = 50;
+int k = 200;
+int minSat = 100;
 
 void initHullWindow(string WindowName) {
     namedWindow(WindowName.c_str(), CV_WINDOW_NORMAL);
