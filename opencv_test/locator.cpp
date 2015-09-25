@@ -1,5 +1,6 @@
 #include "locator.hpp"
 #include <stdio.h>
+#include <math.h>
 
 
 int mu = 0;
@@ -111,4 +112,26 @@ vector<Point>* getHull(Mat src) {
     cvtColor(redOnly, redOnlyBGR, COLOR_HSV2BGR);
 
     return findHull(redOnly);
+}
+
+double hullHeight(vector<Point> hull) {
+  double maxY = 0;
+
+  for (int i = 0; i < hull.size(); i++) {
+    Point point = hull[i];
+
+    if (point.y > maxY)
+      maxY = point.y;
+  }
+
+  double minY = maxY;
+
+  for (int i = 0; i < hull.size(); i++) {
+    Point point = hull[i];
+
+    if (point.y < minY)
+      minY = point.y;
+  }
+
+  return maxY - minY;
 }

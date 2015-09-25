@@ -10,6 +10,8 @@
 #include <vector>
 #include <string>
 
+// OBOY
+
 using namespace cv;
 using namespace std;
 
@@ -19,10 +21,13 @@ void drawHull(vector<Point> hull, Scalar color, Mat &dst);
 
 double hullCircum(vector<Point> hull);
 
+double hullHeight(vector<Point> hull);
+
 Point hullCenter(vector<Point> hull);
 
 vector<Point> *findHull(Mat src);
 
 vector<Point>* getHull(Mat src);
+
 
 #endif
