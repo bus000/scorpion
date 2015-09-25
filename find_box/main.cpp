@@ -18,8 +18,8 @@
 #define IR_bw_s 11
 #define IR_be_s 12
 
-#define MAX_TURN_SPEED 0.9
-#define MAX_FRONT_SPEED 0.3
+#define MAX_TURN_SPEED 0.5
+#define MAX_FRONT_SPEED 0.2
 
 PlayerCc::PlayerClient *robot;
 PlayerCc::Position2dProxy *position;
@@ -56,7 +56,7 @@ void turnInPlace(double degree) {
             break;
     }
 
-    position->SetSpeed(0.0, 0.0);
+    //position->SetSpeed(0.0, 0.0);
 }
 
 void drawWindow(vector<Point> *hull, vector<Point> *lines){
@@ -82,9 +82,9 @@ int isInCenter(Point point, double centerProcent) {
     double min = frameSize.width/2-((frameSize.width/2)*centerProcent);
 
     if(point.x < min)
-        return -1;
-    else if(point.x > max)
         return 1;
+    else if(point.x > max)
+        return -1;
     else
         return 0;
 }
@@ -105,7 +105,26 @@ void findRedBox(){
     lines.push_back(leftTop);
     lines.push_back(leftBottom);
 
-    while(true){
+    capture->read(frame);
+    vector<Point> *hull = getHull(frame);
+
+    position->SetSpeed(0.0, 0.1);
+    while(hull == NULL || !isInCenter(hullCenter(hull), searchFrame)){
+        if(hull != NULL)
+            delete hull;
+
+        waitKey(30);
+
+        capture->read(frame);
+        hull = getHull(frame);
+        if(hull != NULL)
+            drawWindow(hull, &lines);
+    }
+    if(hull != NULL)
+        delete hull;
+    position->SetSpeed(0.0,0.0);
+
+    /*while(true){
         waitKey(30);
         //read frame, check for convex hull
         capture->read(frame);
@@ -126,6 +145,7 @@ void findRedBox(){
         switch(decision){
             case 0:{
                 cout << "FOUND in middle !!!" << endl;
+                position->SetSpeed(0.0, 0.0);
                 return;
             }
             default: {
@@ -133,7 +153,7 @@ void findRedBox(){
                 turnInPlace(2.0*decision);
             }
         }
-    }
+    }*/
 }
 
 bool goToBox(){
@@ -141,6 +161,8 @@ bool goToBox(){
     double xCenter = frameSize.width/2;
 
     while(true){
+        printf("Vi er her goToBox\n");
+        fflush(stdin);
         waitKey(30);
         capture->read(frame);
         vector<Point> *hull = getHull(frame);
@@ -155,17 +177,17 @@ bool goToBox(){
         delete hull;
         hull = NULL;
 
-        double turn = MAX_TURN_SPEED*((center.x - xCenter)/frameSize.width)*2;
+        double turn = MAX_TURN_SPEED*((center.x - xCenter)/frameSize.width)*-2;
         cout << "Turning: " << turn << endl;
         position->SetSpeed(MAX_FRONT_SPEED, turn);
     }
 }
 
 int main(int argc, char **argv){
-    //robot = new PlayerCc::PlayerClient("192.168.240.129");
-    robot = new PlayerCc::PlayerClient("localhost");
+    robot = new PlayerCc::PlayerClient("192.168.240.129");
+    //robot = new PlayerCc::PlayerClient("localhost");
     position = new PlayerCc::Position2dProxy(robot);
-    capture = new VideoCapture(0);
+    capture = new VideoCapture(CV_CAP_ANY);
 
     Mat frame;
     
