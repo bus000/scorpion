@@ -23,6 +23,7 @@
 
 PlayerCc::PlayerClient *robot;
 PlayerCc::Position2dProxy *position;
+PlayerCc::IrProxy *ir;
 
 VideoCapture *capture;
 Size frameSize;
@@ -39,7 +40,7 @@ void turnInPlace(double degree) {
         motorSpeed *= -1.0;
         degree *= -1.0;
     }
-        
+
     position->SetSpeed(0.0, motorSpeed);
 
     double radian = toRadian(degree);
@@ -49,7 +50,7 @@ void turnInPlace(double degree) {
     while(true){
         position->ResetOdometry();
         robot->Read();
-        
+
         radiansTurned += abs(position->GetYaw());
 
         if(radiansTurned >= radian)
@@ -167,12 +168,12 @@ bool goToBox(){
         capture->read(frame);
         vector<Point> *hull = getHull(frame);
 
-        if(hull == NULL){
+        if(hull == NULL || ir->GetRange(IR_bn_n) < 0.5) {
             position->SetSpeed(0.0, 0.0);
             return false;
         }
         drawWindow(hull, NULL);
-        
+
         Point center = hullCenter(hull);
         delete hull;
         hull = NULL;
@@ -184,18 +185,19 @@ bool goToBox(){
 }
 
 int main(int argc, char **argv){
-    robot = new PlayerCc::PlayerClient("192.168.240.129");
-    //robot = new PlayerCc::PlayerClient("localhost");
+    //robot = new PlayerCc::PlayerClient("192.168.240.129");
+    robot = new PlayerCc::PlayerClient("localhost");
     position = new PlayerCc::Position2dProxy(robot);
     capture = new VideoCapture(CV_CAP_ANY);
+    ir = new IrProxy(robot);
 
     Mat frame;
-    
+
     if(!capture->isOpened()){
         cout << "Failed to open camera" << endl;
         return -1;
     }
-    
+
     initHullWindow("videoWindow");
     if(!capture->read(frame)){
         cout << "Cannot read frame" << endl;
@@ -208,7 +210,6 @@ int main(int argc, char **argv){
         findRedBox();
         if(!goToBox())
             continue;
-
     }
 
     return 0;
