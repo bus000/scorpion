@@ -19,7 +19,7 @@
 #define IR_be_s 12
 
 #define MAX_TURN_SPEED 0.5
-#define MAX_FRONT_SPEED 0.2
+#define MAX_FRONT_SPEED 0.1
 
 PlayerCc::PlayerClient *robot;
 PlayerCc::Position2dProxy *position;
@@ -60,8 +60,12 @@ void turnInPlace(double degree) {
     //position->SetSpeed(0.0, 0.0);
 }
 
-void drawWindow(vector<Point> *hull, vector<Point> *lines){
-    Mat dest = Mat::zeros(frameSize, CV_8UC3);
+void drawWindow(vector<Point> *hull, vector<Point> *lines, Mat *background){
+    Mat dest;
+    if(background != NULL)
+        background->copyTo(dest);
+    else
+        dest = Mat::zeros(frameSize, CV_8UC3);
 
     if(hull != NULL) {
         drawHull(*hull, Scalar(255, 255, 255), dest);
@@ -111,6 +115,7 @@ void findRedBox(){
 
     position->SetSpeed(0.0, 0.1);
     while(hull == NULL || !isInCenter(hullCenter(hull), searchFrame)){
+        robot->Read();
         if(hull != NULL)
             delete hull;
 
@@ -118,43 +123,11 @@ void findRedBox(){
 
         capture->read(frame);
         hull = getHull(frame);
-        if(hull != NULL)
-            drawWindow(hull, &lines);
+        drawWindow(hull, &lines, &frame);
     }
     if(hull != NULL)
         delete hull;
     position->SetSpeed(0.0,0.0);
-
-    /*while(true){
-        waitKey(30);
-        //read frame, check for convex hull
-        capture->read(frame);
-        vector<Point> *hull = getHull(frame);
-        drawWindow(hull, &lines);
-
-        if(hull == NULL){
-            cout << "Nothing found... Turning." << endl;
-            //Turn 6 degrees
-            turnInPlace(6.0);
-            continue;
-        }
-
-        Point center = hullCenter(hull);
-        delete hull;
-
-        int decision = isInCenter(center, searchFrame);
-        switch(decision){
-            case 0:{
-                cout << "FOUND in middle !!!" << endl;
-                position->SetSpeed(0.0, 0.0);
-                return;
-            }
-            default: {
-                cout << "JUST FOUND!!!" << endl;
-                turnInPlace(2.0*decision);
-            }
-        }
-    }*/
 }
 
 bool goToBox(){
@@ -162,17 +135,27 @@ bool goToBox(){
     double xCenter = frameSize.width/2;
 
     while(true){
+        robot->Read();
         printf("Vi er her goToBox\n");
         fflush(stdin);
         waitKey(30);
         capture->read(frame);
         vector<Point> *hull = getHull(frame);
 
-        if(hull == NULL || ir->GetRange(IR_bn_n) < 0.5) {
+        double range = ir->GetRange(IR_bn_n);
+        cout << "Range: " << range << endl;
+
+        if(hull == NULL){
             position->SetSpeed(0.0, 0.0);
             return false;
         }
-        drawWindow(hull, NULL);
+
+        if(range < 0.8){
+            position->SetSpeed(0.0, 0.0);
+            return true;
+        }
+
+        drawWindow(hull, NULL, &frame);
 
         Point center = hullCenter(hull);
         delete hull;
@@ -185,11 +168,13 @@ bool goToBox(){
 }
 
 int main(int argc, char **argv){
-    //robot = new PlayerCc::PlayerClient("192.168.240.129");
-    robot = new PlayerCc::PlayerClient("localhost");
+    robot = new PlayerCc::PlayerClient("192.168.240.129");
+    robot->SetDataMode(PLAYER_DATAMODE_PULL);
+    robot->SetReplaceRule(true, PLAYER_MSGTYPE_DATA,-1);
+    //robot = new PlayerCc::PlayerClient("localhost");
     position = new PlayerCc::Position2dProxy(robot);
     capture = new VideoCapture(CV_CAP_ANY);
-    ir = new IrProxy(robot);
+    ir = new PlayerCc::IrProxy(robot);
 
     Mat frame;
 
@@ -210,6 +195,40 @@ int main(int argc, char **argv){
         findRedBox();
         if(!goToBox())
             continue;
+        
+        while(true){
+            Mat frame1;
+            Mat frame2;
+            Mat frame3;
+
+            capture->read(frame1);
+            capture->read(frame2);
+            capture->read(frame3);
+
+            vector<Point> *hull1 = getHull(frame1);
+            vector<Point> *hull2 = getHull(frame2);
+            vector<Point> *hull3 = getHull(frame3);
+
+            bool center1 = false;
+            bool center2 = false;
+            bool center3 = false;
+
+            if(hull1 != NULL)
+                center1 = isInCenter(hullCenter(hull1), searchFrame);
+
+            if(hull2 != NULL)
+                center2 = isInCenter(hullCenter(hull2), searchFrame);
+
+            if(hull3 != NULL)
+                center3 = isInCenter(hullCenter(hull3), searchFrame);
+
+            delete hull1;
+            delete hull2;
+            delete hull3;
+
+            if(!center1 && !center2 && !center3)
+                break;
+        }
     }
 
     return 0;

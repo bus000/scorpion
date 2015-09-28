@@ -1,6 +1,6 @@
 #include "locator.hpp"
 #include <stdio.h>
-
+#include <iostream>
 
 int mu = 0;
 int k = 200;
@@ -61,6 +61,7 @@ vector<Point> *findHull(Mat src) {
     double biggetCirc = 0.0;
 
     for (int i = 0; i < hull.size(); i++) {
+        cout << "Hull size: "  << hull[i].size() << endl;
         double circ = hullCircum(hull[i]);
 
         if (circ > biggetCirc) {
