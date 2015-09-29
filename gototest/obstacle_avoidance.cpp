@@ -10,6 +10,20 @@ PlayerClient robot("192.168.240.129");
 Position2dProxy position(&robot);
 
 Sensors sensors(&robot, 2);
+double ypos;
+double xpos;
+double yaw;
+
+
+void getOdo(){
+    ypos = position.GetYPos();
+    xpos = position.GetXPos();
+    yaw  = position.GetYaw();
+
+    printf("X Pos: %f   Y Pos: %f   Yaw: %f", ypos, xpos, yaw);
+   
+    }
+
 
 void wait(int secs) {
     time_t stop = time(NULL) + secs;
@@ -46,9 +60,18 @@ void run(Position2dProxy *position, double sf, double sl, double sr) {
 
 int main(int argc, char *argv[]) {
     //PlayerClient robot("localhost");
-	player_pose_t destination = (3.0,2.0,1.0);
-    player_pose_t vel = (0.15,0,0);
-    position.GoTo(destination,vel);
+    robot.SetDataMode(PLAYER_DATAMODE_PULL);
+    robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
+
+    position.SetSpeed(0.1,0.0);
+
+    while(ypos <= 1.0 || xpos <= 1.0){   
+        sensors.update();
+        getOdo();
+    }
+
+    position.SetSpeed(0.0,0.0);
+        
 
 	return 0;
 }
