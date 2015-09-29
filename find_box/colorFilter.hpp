@@ -10,6 +10,8 @@
 
 using namespace cv;
 
-void ColorFilter(Mat src, Mat &dest, double my, double k, double minSat);
+void ColorFilter(Mat src, Mat &dest, double my, double k);
+
+void ToBin(Mat src, Mat &dest, int filter);
 
 #endif

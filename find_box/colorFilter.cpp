@@ -2,7 +2,7 @@
 #include <cmath>
 #include <stdio.h>
 
-void ColorFilter(Mat src, Mat &dest, double mu, double k, double minSat) {
+void ColorFilter(Mat src, Mat &dest, double mu, double k) {
     int nRows = src.rows;
     int nCols = src.cols*src.channels();
     dest.create(src.rows, src.cols, src.type());
@@ -19,13 +19,16 @@ void ColorFilter(Mat src, Mat &dest, double mu, double k, double minSat) {
             uchar hue = rowPtr[col];
             uchar sat = rowPtr[col+1];
 
-            uchar model = round((S_MAX*pow(0.5*(1+cos((hue*(M_PI/(H_MAX/2)))-mu)), k)));
-            if(rowPtr[col+1] > minSat)
-                destRowPtr[col+2] = model;
-            else
-                destRowPtr[col+2] = 0;
+            uchar model = round((sat*pow(0.5*(1+cos((hue*(M_PI/(H_MAX/2)))-mu)), k)));
+            destRowPtr[col+2] = model;
             destRowPtr[col+1] = 0;
             destRowPtr[col] = 0;
         }
     }
+}
+
+void ToBin(Mat src, Mat &dest, int filter) {
+    Mat tmpDest;
+    cv::GaussianBlur(src, tmpDest, cv::Size (101, 101), 0, 0);
+    cv::inRange(tmpDest, cv::Scalar(0,0, round(V_MAX/filter)), cv::Scalar(H_MAX, S_MAX, V_MAX), dest);
 }
