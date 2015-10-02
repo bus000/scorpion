@@ -37,10 +37,10 @@ Sensors sensors(&robot, 2);
 
 void getOdo(){
     sensors.update();
-	ypos = position.GetYPos();
-	xpos = position.GetXPos();
-	yaw = position.GetYaw();
-	printf("xpos: %f	 ypos = %f	 yaw = %f\n", xpos, ypos, yaw);
+    ypos = position.GetYPos();
+    xpos = position.GetXPos();
+    yaw = position.GetYaw();
+    printf("xpos: %f     ypos = %f   yaw = %f\n", xpos, ypos, yaw);
 
 }
 
@@ -51,56 +51,70 @@ void wait(int secs) {
     while (time(NULL) < stop)
     {
         sensors.update();
-	    getOdo(); 
+        getOdo();
     }
 }
 
 
 void goTo(double x, double y){
-    
-    position.ResetOdometry();   
-    double turn;   
-    double forward = sqrt(x*x+y*y)/M_P_ODO;
-    
-    if(x > .0)
-    {
-        turn = -(.5 * M_PI - atan(y/x));
-        position.SetSpeed(0.0,-0.3);
-    }
-    else
-    {
-        turn = .5 * M_PI - atan(y/x);
+
+    position.ResetOdometry();
+    getOdo();
+    double turn;
+    double forward = sqrt(x*x + y*y) / M_P_ODO;
+    double start_yaw = yaw;
+    double end_yaw;
+
+    if (x > 0 && y > 0) { /* 1. */
+        turn = -(0.5 * M_PI - (y / x));
+        position.SetSpeed(0.0, -0.3);
+    } else if (x > 0 && y < 0) { /* 4. */
+        turn = -(M_PI - (x / y));
+        position.SetSpeed(0.0, -0.3);
+    } else if (x < 0 && y < 0) { /* 3. */
+        turn = M_PI - (x / y);
+        position.SetSpeed(0.0, 0.3);
+    } else if (x < 0 && y > 0) { /* 2. */
+        turn = 0.5 * M_PI - (y / x);
         position.SetSpeed(0.0, 0.3);
     }
 
-    
+    end_yaw = start_yaw + turn;
+    if (x > 0 && start_yaw < 0)
+        end_yaw = end_yaw > 0 ? M_PI - end_yaw : end_yaw;
+    else if (end_yaw < 0 && start_yaw > 0)
+        end_yaw = end_yaw > M_PI ? -(end_yaw - M_PI) : end_yaw;
+
     printf("Turn: %f  Forward: %f\n", turn, forward);
-    
-    
-    while(fabs(yaw) < fabs(turn))
-        getOdo();      
- 
-    position.ResetOdometry();   
+
+    if (x > 0)
+        while (yaw > end_yaw)
+            getOdo();
+    else
+        while (yaw < end_yaw)
+            getOdo();
+
+    position.ResetOdometry();
     position.SetSpeed(0.3,0.0);
 
     while(xpos < forward)
         getOdo();
-     
-    position.ResetOdometry();
-    
-    if(x > .0)
-        position.SetSpeed(0.0,0.3);
-    else
-        position.SetSpeed(0.0,-0.3);
-    
-    printf("\n%f\n", fabs(yaw));
 
-    while(fabs(yaw) < fabs(turn))
-    {   
-        printf("Turning Back\n");   
-        getOdo();
-    }
-    
+    position.ResetOdometry();
+
+    //if(x > .0)
+        //position.SetSpeed(0.0,0.3);
+    //else
+        //position.SetSpeed(0.0,-0.3);
+
+    //printf("\n%f\n", fabs(yaw));
+
+    //while(fabs(yaw) < fabs(turn))
+    //{
+        //printf("Turning Back\n");
+        //getOdo();
+    //}
+
     position.SetSpeed(0.0,0.0);
 
 }
@@ -116,7 +130,7 @@ void rotation(){
 
     getOdo();
     position.SetOdometry(.0,.0,.0);
-    getOdo(); 
+    getOdo();
 }
 
 
@@ -156,10 +170,6 @@ int main(int argc, char *argv[]) {
     getOdo();
     //goTo(1.0,2.0);
     rotation();
-	
-	
 
-		
-
-	return 0;
+    return 0;
 }
