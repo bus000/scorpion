@@ -58,67 +58,24 @@ void wait(int secs) {
 
 void goTo(double x, double y){
     
-    position.ResetOdometry();   
-    double turn;   
+    double turn = .5 * M_PI - atan(y/x);
     double forward = sqrt(x*x+y*y)/M_P_ODO;
     
-    if(x > .0)
-    {
-        turn = -(.5 * M_PI - atan(y/x));
-        position.SetSpeed(0.0,-0.3);
-    }
-    else
-    {
-        turn = .5 * M_PI - atan(y/x);
-        position.SetSpeed(0.0, 0.3);
-    }
-
-    
     printf("Turn: %f  Forward: %f\n", turn, forward);
+
+    position.SetSpeed(0.0,-0.1);
     
-    
-    while(fabs(yaw) < fabs(turn))
+    while(yaw > -turn)
         getOdo();      
- 
-    position.ResetOdometry();   
-    position.SetSpeed(0.3,0.0);
+
+    position.SetSpeed(0.1,0.0);
 
     while(xpos < forward)
         getOdo();
-     
-    position.ResetOdometry();
-    
-    if(x > .0)
-        position.SetSpeed(0.0,0.3);
-    else
-        position.SetSpeed(0.0,-0.3);
-    
-    printf("\n%f\n", fabs(yaw));
 
-    while(fabs(yaw) < fabs(turn))
-    {   
-        printf("Turning Back\n");   
-        getOdo();
-    }
-    
     position.SetSpeed(0.0,0.0);
 
-}
-
-
-void rotation(){
-    position.SetSpeed(.0,-.3);
-
-    while(yaw < .1)
-        getOdo();
-
-    position.SetSpeed(.0,.0);
-
-    getOdo();
-    position.SetOdometry(.0,.0,.0);
-    getOdo(); 
-}
-
+    }
 
 void frontAvoid(Position2dProxy *position, double front) {
     position->SetSpeed(0, 0);
@@ -146,16 +103,12 @@ void run(Position2dProxy *position, double sf, double sl, double sr) {
 
 int main(int argc, char *argv[]) {
     //PlayerClient robot("localhost");
-    robot.SetDataMode(PLAYER_DATAMODE_PULL);
-    robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
-
+	
     sensors.update();
     double front = sensors.read(IR_bn_n);
-    double left = 1.6;
-    double right = 1.6;
-    getOdo();
-    //goTo(1.0,2.0);
-    rotation();
+    position.SetSpeed(.0,.1);
+    while(true)
+        getOdo();  
 	
 	
 
