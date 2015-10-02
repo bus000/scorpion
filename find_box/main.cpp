@@ -168,10 +168,10 @@ bool goToBox(){
 }
 
 int main(int argc, char **argv){
-    robot = new PlayerCc::PlayerClient("192.168.240.129");
+    //robot = new PlayerCc::PlayerClient("192.168.240.129");
+    robot = new PlayerCc::PlayerClient("localhost");
     robot->SetDataMode(PLAYER_DATAMODE_PULL);
     robot->SetReplaceRule(true, PLAYER_MSGTYPE_DATA,-1);
-    //robot = new PlayerCc::PlayerClient("localhost");
     position = new PlayerCc::Position2dProxy(robot);
     capture = new VideoCapture(CV_CAP_ANY);
     ir = new PlayerCc::IrProxy(robot);

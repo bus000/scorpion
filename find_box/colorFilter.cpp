@@ -1,6 +1,7 @@
 #include "colorFilter.hpp"
 #include <cmath>
 #include <stdio.h>
+#include <iostream>
 
 void ColorFilter(Mat src, Mat &dest, double mu, double k) {
     int nRows = src.rows;
@@ -29,6 +30,17 @@ void ColorFilter(Mat src, Mat &dest, double mu, double k) {
 
 void ToBin(Mat src, Mat &dest, int filter) {
     Mat tmpDest;
-    cv::GaussianBlur(src, tmpDest, cv::Size (101, 101), 0, 0);
+    int x, y;
+    x = round(src.size().width/6);
+    y = round(src.size().height/6);
+
+    if(x % 2 == 0)
+        x++;
+    if(y % 2 == 0)
+        y++;
+
+    std::cout << "x: " << x << std::endl << "y: " << y << std::endl;
+
+    cv::GaussianBlur(src, tmpDest, cv::Size (x, y), 0, 0);
     cv::inRange(tmpDest, cv::Scalar(0,0, round(V_MAX/filter)), cv::Scalar(H_MAX, S_MAX, V_MAX), dest);
 }
