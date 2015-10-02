@@ -4,13 +4,11 @@
 
 int mu = 0;
 int k = 200;
-int minSat = 100;
 
 void initHullWindow(string WindowName) {
     namedWindow(WindowName.c_str(), CV_WINDOW_NORMAL);
     createTrackbar("k:", WindowName.c_str(), &k, 1000);
     createTrackbar("mu:", WindowName.c_str(), &mu, 255);
-    createTrackbar("minSat:", WindowName.c_str(), &minSat, 255);
 }
 
 double hullCircum(vector<Point> hull) {
@@ -27,26 +25,9 @@ double hullCircum(vector<Point> hull) {
 }
 
 vector<Point> *findHull(Mat src) {
-    RNG rng(12345);
-
-    Mat denoized;
-    GaussianBlur(src, denoized, Size(5, 5), 0);
-    GaussianBlur(denoized, denoized, Size(5, 5), 0);
-
-    // Convert to lab
-    Mat imgLab;
-    cvtColor(denoized, imgLab, CV_BGR2Lab);
-
-    // Split channels
-    vector<Mat> channels;
-    split(imgLab, channels);
-
-    Mat threshed;
-    threshold(channels[0], threshed, 40, 255, THRESH_BINARY);
-
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
-    findContours(threshed, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+    findContours(src, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 
     vector<vector<Point> > hull(contours.size());
     for( int i = 0; i < contours.size(); i++ ) {
@@ -107,8 +88,9 @@ vector<Point>* getHull(Mat src) {
     cvtColor(src, frameHSV, COLOR_BGR2HSV);
     split(frameHSV, channels);
 
-    ColorFilter(frameHSV, redOnly, mu, k, minSat);
+    ColorFilter(frameHSV, redOnly, mu, k);
     cvtColor(redOnly, redOnlyBGR, COLOR_HSV2BGR);
+    ToBin(redOnly, redOnly, 5);
 
     return findHull(redOnly);
 }
