@@ -58,6 +58,7 @@ bool transpose(double x, double y)
         end_yaw = start_yaw + turn;
     }
 
+    /* Determine When to Step turning */
     if (x > 0)
         position.SetSpeed(0.0, -TURN_SPEED);
     else
