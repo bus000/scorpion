@@ -66,34 +66,54 @@ void goTo(double x, double y){
     double end_yaw;
 
     if (x > 0 && y > 0) { /* 1. */
+        printf("\nQuadrant: %d", 1);
         turn = -(0.5 * M_PI - (y / x));
         position.SetSpeed(0.0, -0.3);
-    } else if (x > 0 && y < 0) { /* 4. */
+    } else if (x > 0 && y < 0) { /* 4. */  
+        printf("\nQuadrant: %d",4);
         turn = -(M_PI - (x / y));
         position.SetSpeed(0.0, -0.3);
     } else if (x < 0 && y < 0) { /* 3. */
+        printf("\nQuadrant: %d", 3);
         turn = M_PI - (x / y);
         position.SetSpeed(0.0, 0.3);
-    } else if (x < 0 && y > 0) { /* 2. */
+    }i else if (x < 0 && y > 0) { /* 2. */
+        printf("\nQuadrant: %d", 2);
         turn = 0.5 * M_PI - (y / x);
         position.SetSpeed(0.0, 0.3);
     }
 
     end_yaw = start_yaw + turn;
+    
+    
+    /* Yaw If Statement */
     if (x > 0 && start_yaw < 0)
+    {
+        printf("\nEndYaw If: %d", 1);
         end_yaw = end_yaw > 0 ? M_PI - end_yaw : end_yaw;
+    }
     else if (end_yaw < 0 && start_yaw > 0)
+    {
+        printf("\nEndYaw If: %d", 2);
         end_yaw = end_yaw > M_PI ? -(end_yaw - M_PI) : end_yaw;
+    }
 
     printf("Turn: %f  Forward: %f\n", turn, forward);
 
+    /* Determine When to Step turning */
     if (x > 0)
+    {
+        printf("\nStop Turning x > 0");
         while (yaw > end_yaw)
             getOdo();
+    }
     else
+    {
+        printf("\nStop Turning x < 0");
         while (yaw < end_yaw)
             getOdo();
-
+    }
+    
     position.ResetOdometry();
     position.SetSpeed(0.3,0.0);
 
