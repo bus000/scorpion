@@ -6,26 +6,9 @@
 #include <time.h>
 using namespace PlayerCc;
 
-#define IR_bn_ene 0
-#define IR_bn_wnw 1
-#define IR_bn_n 2
-#define IR_bn_ne 3
-#define IR_bn_nw 4
-#define IR_te_nnw 5
-#define IR_te_nne 6
-#define IR_tw_nnw 7
-#define IR_tw_nne 8
-#define IR_bs_w 9
-#define IR_bs_e 10
-#define IR_bw_s 11
-#define IR_be_s 12
-
-#define FRONT_SPEED 0.15
-#define FRONT_SPEED_MOD 0.4
-#define TURN_SPEED 0.25
-#define TURN_SPEED_MOD 1.6
-#define SPEED_COUNTER 3
-#define M_P_ODO 1.16
+#define TURN_SPEED (0.3)
+//#define MAGIC (1.16)
+#define MAGIC (1.0)
 
 PlayerClient robot("192.168.240.129");
 Position2dProxy position(&robot);
@@ -35,141 +18,86 @@ double yaw;
 
 Sensors sensors(&robot, 2);
 
-void getOdo(){
+void getOdo()
+{
     sensors.update();
     ypos = position.GetYPos();
     xpos = position.GetXPos();
     yaw = position.GetYaw();
     printf("xpos: %f     ypos = %f   yaw = %f\n", xpos, ypos, yaw);
-
 }
 
-
-void wait(int secs) {
-    time_t stop = time(NULL) + secs;
-
-    while (time(NULL) < stop)
-    {
-        sensors.update();
-        getOdo();
-    }
+bool double_cmp(double a, double b, double epsilon)
+{
+    return fabs(a - b) < epsilon;
 }
 
+bool transpose(double x, double y)
+{
+    double start_yaw, end_yaw, x_pos, y_pos, turn;
+    double forward = sqrt(x*x + y*y) / MAGIC;
 
-void goTo(double x, double y){
+    if (y < 0) return false;
 
-    position.ResetOdometry();
     getOdo();
-    double turn;
-    double forward = sqrt(x*x + y*y) / M_P_ODO;
-    double start_yaw = yaw;
-    double end_yaw;
+    start_yaw = yaw;
 
-    if (x > 0 && y > 0) { /* 1. */
-        turn = -(0.5 * M_PI - (y / x));
-        position.SetSpeed(0.0, -0.3);
-    } else if (x > 0 && y < 0) { /* 4. */
-        turn = -(M_PI - (x / y));
-        position.SetSpeed(0.0, -0.3);
-    } else if (x < 0 && y < 0) { /* 3. */
-        turn = M_PI - (x / y);
-        position.SetSpeed(0.0, 0.3);
-    } else if (x < 0 && y > 0) { /* 2. */
-        turn = 0.5 * M_PI - (y / x);
-        position.SetSpeed(0.0, 0.3);
+    if (x > 0) {
+        turn = -((0.5 * M_PI) - (y / x));
+    } else if (x < 0) {
+        turn = (0.5 * M_PI) - (y / -x);
+    } else {
+        turn = 0;
     }
 
-    end_yaw = start_yaw + turn;
-    if (x > 0 && start_yaw < 0)
-        end_yaw = end_yaw > 0 ? M_PI - end_yaw : end_yaw;
-    else if (end_yaw < 0 && start_yaw > 0)
-        end_yaw = end_yaw > M_PI ? -(end_yaw - M_PI) : end_yaw;
-
-    printf("Turn: %f  Forward: %f\n", turn, forward);
+    if (start_yaw + turn > M_PI) {
+        end_yaw = -M_PI + (turn - (M_PI - start_yaw));
+    } else if (start_yaw + turn < -M_PI) {
+        end_yaw = M_PI + (turn + (M_PI + start_yaw));
+    } else {
+        end_yaw = start_yaw + turn;
+    }
 
     if (x > 0)
-        while (yaw > end_yaw)
-            getOdo();
+        position.SetSpeed(0.0, -TURN_SPEED);
     else
-        while (yaw < end_yaw)
+        position.SetSpeed(0.0, TURN_SPEED);
+
+    while (!double_cmp(yaw, end_yaw, 0.01))
+        getOdo();
+
+    position.ResetOdometry();
+    position.SetSpeed(0.0, 0.0);
+    getOdo();
+    sleep(1);
+    position.SetSpeed(0.1, 0.0);
+
+    /* Forward. */
+    double x_fabs = fabs(x) / MAGIC;
+    double y_fabs = fabs(y) / MAGIC;
+    if (end_yaw >= 0 && end_yaw <= (0.5 * M_PI)) {
+        while (xpos < x_fabs && ypos < y_fabs)
             getOdo();
-
-    position.ResetOdometry();
-    position.SetSpeed(0.3,0.0);
-
-    while(xpos < forward)
-        getOdo();
-
-    position.ResetOdometry();
-
-    //if(x > .0)
-        //position.SetSpeed(0.0,0.3);
-    //else
-        //position.SetSpeed(0.0,-0.3);
-
-    //printf("\n%f\n", fabs(yaw));
-
-    //while(fabs(yaw) < fabs(turn))
-    //{
-        //printf("Turning Back\n");
-        //getOdo();
-    //}
-
-    position.SetSpeed(0.0,0.0);
-
-}
-
-
-void rotation(){
-    position.SetSpeed(.0,-.3);
-
-    while(yaw < .1)
-        getOdo();
-
-    position.SetSpeed(.0,.0);
-
-    getOdo();
-    position.SetOdometry(.0,.0,.0);
-    getOdo();
-}
-
-
-void frontAvoid(Position2dProxy *position, double front) {
-    position->SetSpeed(0, 0);
-    wait(1);
-    position->SetSpeed(-1*FRONT_SPEED, 0);
-    wait(2);
-    position->SetSpeed(0, 0);
-    wait(1);
-}
-
-void run(Position2dProxy *position, double sf, double sl, double sr) {
-    static int speedCount = SPEED_COUNTER;
-    double speed = FRONT_SPEED * (sf - FRONT_SPEED_MOD);
-    double turn = (((sl - TURN_SPEED_MOD) * M_PI) +
-           ((sr - TURN_SPEED_MOD) * (- M_PI)))*TURN_SPEED;
-
-    if((sf - FRONT_SPEED_MOD) <= 0.0 && --speedCount == 0){
-        speedCount = SPEED_COUNTER;
-        printf("\nCalling frontAvoid");
-        frontAvoid(position, sf);
-    }else{
-        position->SetSpeed(speed, turn);
+    } else if (end_yaw > 0) {
+        while (xpos > x_fabs && ypos < y_fabs)
+            getOdo();
+    } else if (end_yaw < 0 && end_yaw >= -(0.5 * M_PI)) {
+        while (xpos < x_fabs && ypos > y_fabs)
+            getOdo();
+    } else {
+        while (xpos > x_fabs && ypos > y_fabs)
+            getOdo();
     }
+
+    position.SetSpeed(0.0, 0.0);
 }
 
 int main(int argc, char *argv[]) {
-    //PlayerClient robot("localhost");
+    /* Set mode to push so TCP connection doesn't flood. */
     robot.SetDataMode(PLAYER_DATAMODE_PULL);
     robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
 
-    sensors.update();
-    double front = sensors.read(IR_bn_n);
-    double left = 1.6;
-    double right = 1.6;
-    getOdo();
-    //goTo(1.0,2.0);
-    rotation();
+    transpose(-1, 1);
 
     return 0;
 }
