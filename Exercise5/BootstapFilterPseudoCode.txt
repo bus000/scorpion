@@ -1,0 +1,13 @@
+
+MCL :: pose -> cmd -> meas -> [particle] => [Particle]
+MCL xt u z m
+  X = X' = Ø
+  FOR i = 0 TO length(m) DO
+    particle p = dynamicModel(m[i], u)    // Create a new particle from the old one, moved by the robot command.
+    p.weight   = measModel(z, m[i])       // Calculate weight according to the last measurement.
+    X' = p : X'                           // Add to temporary set.
+  // normalize weights
+  FOR i = 0 TO length(m) DO               // Resample
+    particle p = draw(X')                 // Draw a particle from X' with probabilty by weight.
+    X = p : X                             // Add particle to final set.
+  RETURN X 

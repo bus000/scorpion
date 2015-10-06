@@ -136,10 +136,11 @@ int main()
   const CvSize size = cvSize (320, 240);
   const double odometry_sigma = 1;
 
-  // Allocate stuff
-  //IplImage *rgb_im = cvCreateImage (size, IPL_DEPTH_8U, 3);
+    PlayerClient robot("192.168.240.129");
+    Position2dProxy position(&robot);
 
-  // Initialize player (XXX: You do this)
+    robot.SetDataMode(PLAYER_DATAMODE_PULL);
+    robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
 
   // Driving parameters
   double velocity = 15; // cm/sec
@@ -251,8 +252,8 @@ int main()
     } // End: while (true)
 
 theend:
-  // Stop the robot
-  // XXX: Stop the robot
+    // Stop the robot
+    position.SetSpeed(0.0, 0.0);
 
   // Clean up and return
   //cvReleaseImage (&rgb_im);
