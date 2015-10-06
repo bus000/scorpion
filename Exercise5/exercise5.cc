@@ -252,8 +252,8 @@ int main()
     } // End: while (true)
 
 theend:
-  // Stop the robot
-  // XXX: Stop the robot
+    // Stop the robot
+    position.SetSpeed(0.0, 0.0);
 
   // Clean up and return
   //cvReleaseImage (&rgb_im);
