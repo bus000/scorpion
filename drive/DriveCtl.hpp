@@ -3,8 +3,8 @@
 
 #define DRIVE_TIME 10000000/96.5
 #define TURN_TIME 61100000/(2*360)
-#define ODO_FORWARD 1
-#define ODO_BACKWARD -1
+#define DRIVE_FORWARD 1
+#define DRIVE_BACKWARD -1
 #include <libplayerc++/playerc++.h>
 
 
@@ -17,6 +17,13 @@ public:
     void turnLeft(double degrees);
     void turnRight(double degrees);
     void setDirection(int direction);
+    void setXPos(double x);
+    void setYPos(double y);
+    void setYaw(double yaw);
+    double getXPos();
+    double getYPos();
+    double getYaw();
+    void goToPos(double x, double y);
 
 private:
     PlayerCc::PlayerClient *robot;
@@ -26,6 +33,8 @@ private:
     double turnSpeed;
     double toRadians(double degrees);
     double toDegrees(double radians);
+    double xPos, yPos, yaw;
+    void overRunYaw();
 };
 
 #endif
