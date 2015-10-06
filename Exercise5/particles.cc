@@ -22,14 +22,11 @@ particle estimate_pose (std::vector<particle> &particles)
     return particle (x, y, theta);
 }
 
-// XXX: You implement this
-// Done by N-2The-I-2The-C-2The-K-2The-L-2The-A-2The-S
-// Nicklas!!!!!!!!!!
-void move_particle (particle &p, double delta_x, double delta_y, double delta_theta)
+void move_particle(particle &p, double delta_x, double delta_y, double delta_theta)
 {
-    particle.x += delta_x;
-    particle.y += delta_y;
-    particle.theta += delta_theta;
+    p.x += delta_x;
+    p.y += delta_y;
+    p.theta += delta_theta;
 }
 
 void add_uncertainty (std::vector<particle> &particles, double sigma, double theta_kappa)
