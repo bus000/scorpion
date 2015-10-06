@@ -21,7 +21,6 @@ class particle {
         double weight;
 };
 
-
 /**
  * Estimate the pose from particles by computing the average position and orientation over all particles.
  * This is not done using the particle weights, but just the sample distribution.
