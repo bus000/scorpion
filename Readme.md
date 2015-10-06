@@ -24,7 +24,7 @@ ssh diku@192.168.43.63
 ```
 
 ```
-sshfs diku@192.168.43.63:/home/diku /Your/Path -C -oallow_other 
+sshfs diku@192.168.43.63:/home/diku /Your/Path -C -oallow_other
 ```
 
 Links
