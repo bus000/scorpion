@@ -24,6 +24,11 @@ public:
     double getYPos();
     double getYaw();
     void goToPos(double x, double y);
+    void resetCounters();
+    void resetYawed();
+    void resetDriven();
+    double getYawed();
+    double getDriven();
 
 private:
     PlayerCc::PlayerClient *robot;
@@ -34,6 +39,7 @@ private:
     double toRadians(double degrees);
     double toDegrees(double radians);
     double xPos, yPos, yaw;
+    double yawed, driven;
     void overRunYaw();
 };
 
