@@ -14,6 +14,29 @@ DriveCtl::DriveCtl(PlayerCc::PlayerClient *robot,
     this->xPos = 0.0;
     this->yPos = 0.0;
     this->yaw = 0.0;
+    this->yawed = 0.0;
+    this->driven = 0.0;
+}
+
+void DriveCtl::resetYawed(){
+    this->yawed = 0.0;
+}
+
+void DriveCtl::resetDriven(){
+    this->driven = 0.0;
+}
+
+void DriveCtl::resetCounters(){
+    this->resetDriven();
+    this->resetYawed();
+}
+
+double DriveCtl::getYawed(){
+    return this->yawed;
+}
+
+double DriveCtl::getDriven(){
+    return this->driven;
 }
 
 void DriveCtl::drive(double cm){
@@ -24,6 +47,8 @@ void DriveCtl::drive(double cm){
     //Update x, y pos
     this->xPos += cm*cos(this->toRadians(this->yaw));
     this->yPos += cm*sin(this->toRadians(this->yaw));
+    //update driven
+    this->driven += cm;
 }
 
 void DriveCtl::turn(double degrees){
@@ -39,6 +64,8 @@ void DriveCtl::turn(double degrees){
     //update yaw
     this->yaw += degrees*turnDirection;
     this->overRunYaw();
+    //update yawed
+    this->yawed += std::abs(degrees);
 }
 
 void DriveCtl::turnLeft(double degrees){
