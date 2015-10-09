@@ -1,6 +1,10 @@
-#include "cv.h"
-#include "cxcore.h"
-#include "highgui.h"
+// #include "cv.h"
+// #include "cxcore.h"
+// #include "highgui.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include <stdio.h>
 #include <iostream>
@@ -10,6 +14,7 @@
 #include "camera.h"
 #include "particles.h"
 #include "random_numbers.h"
+#include "particleFilter.hpp"
 
 /*
  * Some colors
@@ -117,7 +122,7 @@ int main()
   cvMoveWindow (window, 20, 20);
 
   // Initialize particles
-  const int num_particles = 2000;
+  const int num_particles = 1000;
   std::vector<particle> particles(num_particles);
   for (int i = 0; i < num_particles; i++)
     {
@@ -133,20 +138,7 @@ int main()
   camera cam;
 
   // Parameters
-  const CvSize size = cvSize (320, 240);
-  const double odometry_sigma = 1;
-
-    PlayerClient robot("192.168.240.129");
-    Position2dProxy position(&robot);
-
-    robot.SetDataMode(PLAYER_DATAMODE_PULL);
-    robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
-
-  // Driving parameters
-  double velocity = 15; // cm/sec
-  const double acceleration = 12; // cm/sec^2
-  double angular_velocity = 0.0; // radians/sec
-  const double angular_acceleration = M_PI/2.0; // radians/sec^2
+  const CvSize size = cvSize (480, 360);
 
   // Draw map
   draw_world (est_pose, particles, world);
@@ -156,38 +148,6 @@ int main()
     {
       // Move the robot according to user input
       int action = cvWaitKey (10);
-      switch (action) {
-        case KEY_UP:
-            velocity += 4.0;
-            break;
-        case KEY_DOWN:
-            velocity -= 4.0;
-            break;
-        case KEY_LEFT:
-            angular_velocity += 0.2;
-            break;
-        case KEY_RIGHT:
-            angular_velocity -= 0.2;
-            break;
-      case 'w': // Forward
-          velocity += 4.0;
-          break;
-      case 'x': // Backwards
-          velocity -= 4.0;
-          break;
-      case 's': // Stop
-          velocity = 0.0;
-          angular_velocity = 0.0;
-          break;
-      case 'a': // Left
-          angular_velocity += 0.2;
-          break;
-      case 'd': // Right
-          angular_velocity -= 0.2;
-          break;
-        case 'q': // Quit
-            goto theend;
-      }
 
       //XXX: Make player drive
 
@@ -222,7 +182,12 @@ int main()
               printf ("Unknown landmark type!\n");
               continue;
             }
-        
+       
+          
+          particle zeroP(0, 0);
+          measurement meas(particle(0, 0), measured_distance, measured_angle);
+          mclFilter(est_pose, zeroP, meas, particles);
+
           // Compute particle weights
           // XXX: You do this
             
@@ -253,7 +218,7 @@ int main()
 
 theend:
     // Stop the robot
-    position.SetSpeed(0.0, 0.0);
+    // position.SetSpeed(0.0, 0.0);
 
   // Clean up and return
   //cvReleaseImage (&rgb_im);

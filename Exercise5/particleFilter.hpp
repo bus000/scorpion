@@ -2,8 +2,20 @@
 #define _PARTICLE_FILTER_
 
 #include "random_numbers.h"
+#include "particles.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv.hpp>
+#include <vector>
+#include <string>
+#include <stdlib.h>
+#include "math.h"
+
+using namespace std;
+using namespace cv;
 
 class measurement {
+public:
   particle position;
   double distance;
   double angle;
@@ -18,16 +30,6 @@ class measurement {
   ~measurement() {};
 };
 
-vector<particle> mclFilter(particle pose, particle command, vector<particle> previous) {
-  vector<particle> tmpX;
-  vector<particle> finX; 
-
-  for (int i = 0; i < previous.size(); i++) {
-    particle p;
-    p->
-  }
-}
-
-
+void mclFilter(particle pose, particle command, measurement meas, vector<particle> &previous);
 
 #endif

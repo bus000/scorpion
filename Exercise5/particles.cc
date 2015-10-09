@@ -38,9 +38,13 @@ void add_uncertainty (std::vector<particle> &particles, double sigma, double the
     const int len = particles.size();
     for (int i = 0; i < len; i++)
       {
-        particles[i].x += randn (0, sigma);
-        particles[i].y += randn (0, sigma);
-        particles[i].theta = fmod(rand_von_mises (particles[i].theta, theta_kappa), 2.0f * M_PI) - M_PI;
+        uncertain_particle(particles[i], sigma, theta_kappa);
       }
+}
+
+void uncertain_particle(particle &p, double sigma, double theta_kappa) {
+  p.x += randn (0, sigma);
+  p.y += randn (0, sigma);
+  p.theta = fmod(rand_von_mises (p.theta, theta_kappa), 2.0f * M_PI) - M_PI;
 }
 

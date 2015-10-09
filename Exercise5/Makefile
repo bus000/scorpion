@@ -4,16 +4,16 @@
 
 # Compile and link flags
 CXX         =  g++
-CXXFLAGS    = -Wall
+CXXFLAGS    =
 OPENCVFLAGS = `pkg-config opencv --cflags`
-CXXFLAGS    = $(OPENCVFLAGS) -Wall
+CXXFLAGS    = $(OPENCVFLAGS)
 OPENCVLIBS  = `pkg-config opencv --libs`
 
 # Main executable
 EXECUTABLE = exercise5
 
 # Files
-SOURCES = particles.cc random_numbers.cc camera.cc
+SOURCES = particles.cc random_numbers.cc camera.cc particleFilter.cpp
 CCFILES = $(EXECUTABLE).cc $(SOURCES)
 OBJECTS = $(patsubst %.cc, %.o, $(CCFILES))
 

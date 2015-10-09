@@ -1,38 +1,5 @@
 #include "particleFilter.hpp"
 
-// Does one iteration of the Bootstap/Monte Carlo Localiation algorithm.
-vector<particle> mclFilter(particle pose, particle command, measurement meas, vector<particle> previous) {
-  vector<particle> tmpX;
-  vector<particle> finX; 
-
-  // Move all particles according to command and calculate weight according to measurement.
-  for (int i = 0; i < previous.size(); i++) {
-    particle p = dynamicModel(previous[i], command);
-    p.weight   = measurementModel(p, meas);
-    tmpX.push_back(p);
-  }
-
-  // Calculate total weight.
-  double totalWeight;
-  for (int i = 0; i < tmpX.size(); i++) {
-    totalWeight += tmpX[i].weight;
-  }
-
-  // Normalize weights.
-  for (int i = 0; i < tmpX.size(); i++) {
-    particle *p = &(tmpX[i]);
-    p->weight = p->weight / totalWeight;
-  }
-
-  // Resample particles.
-  for (int i = 0; i < tmpX.size(); i++) {
-    particle p = drawParticle(tmpX);
-    finX.push_back(p);
-  }
-
-  return finX;
-}
-
 // Assume that weights are normalized.
 particle drawParticle(vector<particle> particles) {
   vector<double> adjusted;
@@ -63,9 +30,10 @@ particle drawParticle(vector<particle> particles) {
 
 // Move particle according to robot command.
 particle dynamicModel(particle target, particle command) {
-  particle p; 
+  particle p(0, 0, 0, 0); 
   move_particle(p, target.x, target.y, 0);
   move_particle(p, command.x, command.y, 0);
+  uncertain_particle(p, 1.5, 0.0);
   return p;
 }
 
@@ -75,6 +43,43 @@ double measurementModel(particle target, measurement meas) {
   Point m(meas.position.x, meas.position.y);
 
   double dist = norm(p - m);
+  double angf = fabs((target.theta + 2 * M_PI) - (meas.angle + 2 * M_PI)) / M_PI;
+  double angd = angf * dist;
 
-  return 1.0 / abs(dist - meas.distance);
-} 
+  return (1.0 / fabs(dist - meas.distance));
+}
+
+// Does one iteration of the Bootstap/Monte Carlo Localiation algorithm.
+void mclFilter(particle pose, particle command, measurement meas, vector<particle> &previous) {
+  vector<particle> tmpX;
+  vector<particle> finX; 
+
+  // Move all particles according to command and calculate weight according to measurement.
+  for (int i = 0; i < previous.size(); i++) {
+    particle p = dynamicModel(previous[i], command);
+    p.weight   = measurementModel(p, meas);
+    tmpX.push_back(p);
+  }
+
+  // Calculate total weight.
+  double totalWeight;
+  for (int i = 0; i < tmpX.size(); i++) {
+    totalWeight += tmpX[i].weight;
+  }
+
+  // Normalize weights.
+  for (int i = 0; i < tmpX.size(); i++) {
+    particle *p = &(tmpX[i]);
+    p->weight = p->weight / totalWeight;
+  }
+
+  // Resample particles.
+  for (int i = 0; i < tmpX.size(); i++) {
+    particle p = drawParticle(tmpX);
+    finX.push_back(p);
+  }
+
+  previous = finX;
+  add_uncertainty(previous, 4.0, 0.0);
+}
+

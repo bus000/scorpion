@@ -1,6 +1,6 @@
 CC = g++ -g
-flags = `pkg-config --cflags opencv playerc++`
-libs = `pkg-config --libs opencv playerc++`
+flags = `pkg-config --cflags opencv`
+libs = `pkg-config --libs opencv`
 sources = $(wildcard *.cpp)
 output = opencv
 

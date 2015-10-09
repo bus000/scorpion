@@ -100,5 +100,10 @@ double distanceToPoly(double realHeight, double pixelHeight, double camerafy) {
  * v = arccos(b / fx * (B/Z))
  */
 double angleToPoly(double distance, double realWidth, double pixelWidth, double camerafx) {
-  return acos(pixelWidth /  (camerafx * (realWidth / distance)));
+  double angle = acos(pixelWidth /  (camerafx * (realWidth / distance)));
+
+  // Check if angle is NaN (Comparisons with NaN == NaN will always return false);
+  if (angle != angle) angle = 0;
+
+  return angle;
 }

@@ -75,12 +75,13 @@ vector<Point> *findHull(Mat src) {
 }
 
 void drawHull(vector<Point> hull, Scalar color, Mat &dst) {
-    for( int i = 1; i < hull.size(); i++ )
+    for( int i = 1; i <= hull.size(); i++ )
     {
+        int j = i % hull.size();
         Point a = hull[i-1];
-        Point b = hull[i];
+        Point b = hull[j];
 
-        line(dst, a, b, color);
+        line(dst, a, b, color, 3);
     }
 }
 
@@ -113,6 +114,63 @@ vector<Point>* getHull(Mat src) {
 
     return findHull(redOnly);
 }
+
+vector<Point> findPoints(vector<Point> hull, int target, double step, double minT, double maxT) {
+  for (int i = 1; i < hull.size(); i++) {
+    double t = minT;
+    for (; t < maxT; t += step) {
+      auto points = filterHull(hull, i, t);
+
+      if (points.size() == target) {
+        return points;
+      }
+    }
+  }
+ 
+  return hull; 
+}
+
+vector<Point> filterHull(vector<Point> hull, int clusterSize, double threshold) {
+  vector<Point> filtered;
+
+  vector<vector<Point> > clusters;
+  vector<Point> first;
+  first.push_back(hull[0]);
+  clusters.push_back(first);
+  
+  for (int i = 1; i < hull.size(); i++) {
+    auto cluster = &clusters.back();
+    auto a = cluster->back();
+    auto b = hull[i];
+    
+    if (norm(b-a) < threshold) {
+      cluster->push_back(b);
+    }
+    else {
+      vector<Point> newCluster;
+      newCluster.push_back(b);
+      clusters.push_back(newCluster);
+    }
+  }
+
+  for(int i = 0; i < clusters.size(); i++) {
+    auto cluster = clusters[i];
+
+    printf("%d: %lu\n", i, cluster.size());
+
+    if (cluster.size() >= clusterSize) {
+      for (int j = 0; j < cluster.size(); j++) {
+        Point c = hullCenter(cluster);
+        filtered.push_back(c);
+      } 
+    }
+  }
+
+  printf("Points: %lu, clusters: %lu, filtered: %lu\n", hull.size(), clusters.size(), filtered.size()); 
+
+  return filtered;
+}
+
 
 double hullHeight(vector<Point> hull) {
   double maxY = 0;

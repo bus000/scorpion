@@ -20,4 +20,6 @@ vector<Point> combine(vector<Point> p1, vector<Point> p2);
 
 Point reduce(vector<Point> points);
 
+vector<Point> findPoly(int vertices, vector<Point> points);
+
 #endif

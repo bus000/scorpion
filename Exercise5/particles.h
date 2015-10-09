@@ -2,7 +2,7 @@
 #define PARTICLES_H
 
 #include <vector>
-#include "cxcore.h"
+// #include "cxcore.h"
 
 /**
  * Data structure for storing particle information (state and weight)
@@ -31,5 +31,7 @@ particle estimate_pose(std::vector<particle> &particles);
 void move_particle(particle &p, double delta_x, double delta_y, double delta_theta);
 
 void add_uncertainty(std::vector<particle> &particles, double sigma, double theta_kappa);
+
+void uncertain_particle(particle &p, double sigma, double theta_kappa);
 
 #endif
