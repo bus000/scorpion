@@ -7,4 +7,6 @@ using namespace std;
 
 State RunState(State state);
 
+void PrintState(State state);
+
 #endif
