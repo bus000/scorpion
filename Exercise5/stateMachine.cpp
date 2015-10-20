@@ -1,12 +1,12 @@
 #include "stateMachine.hpp"
 
-State TurnToFirstLandmark(State state);
-State DriveToFirstLandmark(State state);
-State TurnToSecondLandmark(State state);
-State DriveToFinishPosition(State state);
-State DriveToOtherSide(State state);
+State TurnToFirstLandmark(State &state);
+State DriveToFirstLandmark(State &state);
+State TurnToSecondLandmark(State &state);
+State DriveToFinishPosition(State &state);
+State DriveToOtherSide(State &state);
 
-State RunState(State state) {
+State RunState(State &state) {
   switch(state.currentStep) {
     case FirstSearch:
       return TurnToFirstLandmark(state);
@@ -24,7 +24,8 @@ State RunState(State state) {
 }
 
 // Step 1: Searches for the first landmark.
-State TurnToFirstLandmark(State state) {
+State TurnToFirstLandmark(State &state) {
+  DriveCtl *control = state.driveControl;
   // TODO: Turn the robot until a landmark is found.
 
   // TODO: Determine landmark from color
@@ -37,7 +38,8 @@ State TurnToFirstLandmark(State state) {
 }
 
 // Step 2: Positions the robot at a right angle 150 cm from the landmark.
-State DriveToFirstLandmark(State state) {
+State DriveToFirstLandmark(State &state) {
+  DriveCtl *control = state.driveControl;
   // TODO: Drive to landmark position.
   
   state.currentStep = SecondSearch;
@@ -46,7 +48,8 @@ State DriveToFirstLandmark(State state) {
 }
 
 // Step 3: Searches for the second landmark.
-State TurnToSecondLandmark(State state) {
+State TurnToSecondLandmark(State &state) {
+  DriveCtl *control = state.driveControl;
   // TODO: Turn the robot until a new landmark is found
   
   if (true) { // TODO: If a new landmark was found
@@ -61,7 +64,8 @@ State TurnToSecondLandmark(State state) {
 }
 
 // Step 3.1: Drives to the other side of the current landmark.
-State DriveToOtherSide(State state) {
+State DriveToOtherSide(State &state) {
+  DriveCtl *control = state.driveControl;
   // TODO: 
   // Reset odometry.
   // Drive to (150, 150).
@@ -72,4 +76,9 @@ State DriveToOtherSide(State state) {
   state.currentStep = GotoFinish;
 
   return state;
+}
+
+void PrintState(State state) {
+  // TODO: finish this
+  printf("Task:\t");
 }
