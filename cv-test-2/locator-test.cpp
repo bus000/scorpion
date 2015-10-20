@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     Mat frame;
     Mat dest;
     double fx = 1058.051100;
-    double fy = 1068.394230;
+    double fy = 1034.394230;
     
     if(!capture.isOpened()){
         cout << "Failed to open camera" << endl;
@@ -55,18 +55,18 @@ int main(int argc, char **argv) {
           }
           
           if (hlines.size() > 1 && vlines.size() > 1) {
-            double width1   = hlines[0].length();
-            double width2   = hlines[1].length();
+            double width1   = hlines[0].width();
+            double width2   = hlines[1].width();
             double width    = (width1 + width2) / 2.0;
 
-            double height1  = vlines[0].length();
-            double height2  = vlines[1].length();
+            double height1  = vlines[0].height();
+            double height2  = vlines[1].height();
             double height   = (width1 + width2) / 2.0;
 
             double angSign  = height1 > height2 ? -1.0 : 1.0;
 
             double distance = distanceToPoly(0.218, vlines[0].height(), fy);
-            double angle    = angSign * angleToPoly(distance, 0.297, hlines[0].width(), fx);
+            double angle    = (0.5 * M_PI) + angSign * angleToPoly(distance, 0.297, hlines[0].width(), fx);
             printf("distance: (%f m, %f px); angle (%f deg, %f px)\n", distance, height, (180.0/M_PI) * angle, width);
           }
         }

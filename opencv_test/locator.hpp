@@ -29,5 +29,8 @@ vector<Point> *findHull(Mat src);
 
 vector<Point>* getHull(Mat src);
 
+vector<Point> findPoints(vector<Point> hull, int target, double step, double minT, double maxT);
+
+vector<Point> filterHull(vector<Point> hull, int clusterSize, double threshold);
 
 #endif

@@ -160,6 +160,48 @@ Point reduce(vector<Point> points) {
   return temp[0];
 }
 
+Point rotateAround(Point origin, Point p, double angle) {
+  // Translate
+  Point tp = p - origin;
+
+  Point rp = Point(tp.x * cos(angle) - tp.y * sin(angle), tp.x * sin(angle) + tp.y * cos(angle));
+
+  return rp + origin;
+}
+
+double radius(vector<Point> points) {
+  double max   = 0;
+  Point center = hullCenter(points);
+
+  for (int i = 0; i < points.size(); i++) {
+    double d = norm(points[i] - center);
+    if (d > max) {
+      max = d;
+    } 
+  }
+
+  return max;
+}
+
+vector<Point> findPoly(int vertices, vector<Point> points) {
+  double angle = (2 * M_PI) / ((double)vertices); 
+  double dist  = radius(points);
+  Point center = hullCenter(points);
+  Point offset = center + Point(0, 2 * dist);
+  vector<Point> result;
+  vector<Point> polygon;
+
+  Point first = rotateAround(center, offset, - (0.5 * angle));
+  polygon.push_back(first);
+
+  for (int i = 0; i < vertices - 1; i++) {
+    Point p = rotateAround(center, first, angle * (i+1));
+    polygon.push_back(p);
+  }
+
+  return correlate(polygon, points);
+ }
+
 // The pairwise mean of points in p1 and p2.
 vector<Point> combine(vector<Point> p1, vector<Point> p2) {
   vector<Point> result;

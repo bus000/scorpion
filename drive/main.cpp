@@ -24,18 +24,26 @@ int main(int argc, char **argv){
     std::cout << "pos: (" << c.getXPos() << ", ";
     std::cout << c.getYPos() << ")" << std::endl;
     std::cout << "yaw: " << c.getYaw() << std::endl << std::endl;
+    std::cout << "yawed: " << c.getYawed() << std::endl << std::endl;
+    std::cout << "driven: " << c.getDriven() << std::endl << std::endl;
     c.turnLeft(90.0);
     std::cout << "pos: (" << c.getXPos() << ", ";
     std::cout << c.getYPos() << ")" << std::endl;
     std::cout << "yaw: " << c.getYaw() << std::endl << std::endl;
+    std::cout << "yawed: " << c.getYawed() << std::endl << std::endl;
+    std::cout << "driven: " << c.getDriven() << std::endl << std::endl;
     c.drive(100.0);
     std::cout << "pos: (" << c.getXPos() << ", ";
     std::cout << c.getYPos() << ")" << std::endl;
     std::cout << "yaw: " << c.getYaw() << std::endl << std::endl;
+    std::cout << "yawed: " << c.getYawed() << std::endl << std::endl;
+    std::cout << "driven: " << c.getDriven() << std::endl << std::endl;
     c.goToPos(2.0,0.0);
     std::cout << "pos: (" << c.getXPos() << ", ";
     std::cout << c.getYPos() << ")" << std::endl;
     std::cout << "yaw: " << c.getYaw() << std::endl << std::endl;
+    std::cout << "yawed: " << c.getYawed() << std::endl << std::endl;
+    std::cout << "driven: " << c.getDriven() << std::endl << std::endl;
 
     usleep(1000000);
     
