@@ -22,7 +22,7 @@ all: $(EXECUTABLE)
 
 # Linking
 $(EXECUTABLE): $(OBJECTS)
-	$(CXX) $(OPENCVLIBS) $(OBJECTS) -o $(EXECUTABLE)
+	$(CXX) $(OPENCVLIBS) -lpthread $(OBJECTS) -o $(EXECUTABLE)
 
 # Compilation.
 %.o : %.cc

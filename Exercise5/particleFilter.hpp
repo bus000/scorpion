@@ -30,6 +30,6 @@ public:
   ~measurement() {};
 };
 
-void mclFilter(particle pose, particle command, measurement meas, vector<particle> &previous);
+void mclFilter(particle command, measurement meas, vector<particle> &previous);
 
 #endif
