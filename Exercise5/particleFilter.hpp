@@ -10,25 +10,10 @@
 #include <string>
 #include <stdlib.h>
 #include "math.h"
+#include "measurement.h"
 
 using namespace std;
 using namespace cv;
-
-class measurement {
-public:
-  particle position;
-  double distance;
-  double angle;
-
-  measurement() {};
-  measurement(particle position, double distance, double angle) {
-    this->position = position;
-    this->distance = distance;
-    this->angle    = angle;
-  }
-
-  ~measurement() {};
-};
 
 void mclFilter(particle command, measurement meas, vector<particle> &previous);
 
