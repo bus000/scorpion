@@ -6,7 +6,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <pthread.h>
-#include "state.hpp"
 
 #include <stdio.h>
 #include <iostream>
@@ -20,9 +19,8 @@ public:
     double distance;
     double angle;
     ObservedLandmark landmark;
-    vector<double> observedPosition;
 
-    measurement(camera &cam, IplImage &im, particle position);
+    measurement(camera &cam, IplImage &im);
 
     measurement(particle position, double distance, double angle) {
         this->position = position;
@@ -32,6 +30,5 @@ public:
 
     ~measurement() {};
 };
-
 
 #endif
