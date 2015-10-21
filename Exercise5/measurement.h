@@ -20,8 +20,8 @@ public:
     double distance;
     double angle;
     ObservedLandmark landmark;
+    vector<double> observedPosition;
 
-    measurement() {};
     measurement(camera &cam, IplImage &im, particle position);
 
     measurement(particle position, double distance, double angle) {
