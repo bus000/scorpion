@@ -26,51 +26,6 @@
  */
 #define NUM_THREADS 8
 
-/*
- * struct for particle thread job
- */
-struct particle_pack {
-    particle command;
-    measurement meas;
-    vector<particle> parts;
-};
-
-void* startMclFilter(void *data){
-    struct particle_pack *data_p = (struct particle_pack*)data;
-    mclFilter(
-        data_p->command,
-        data_p->meas,
-        data_p->parts
-    );
-}
-
-particle est_pack_pos(struct particle_pack *data, int length){
-    particle result(0,0);
-    for(int i = 0; i < length; i++){
-        particle tmp = estimate_pose(data[i].parts);
-        result.x += tmp.x;
-        result.y += tmp.y;
-        result.theta += tmp.theta;
-    }
-
-    result.x /= length;
-    result.y /= length;
-    result.theta /= length;
-    return result;
-}
-
-std::vector<particle> join_particles(struct particle_pack *data, int length){
-    std::vector<particle> tmp_p;
-    
-    //this is dume and comment it out when running the robot
-    std::vector<particle> tmp;
-    for(int i = 0; i < length; i++){
-        for(int a = 0; a < data[i].parts.size(); a++)
-            tmp_p.push_back(data[i].parts[a]);
-    }
-    return tmp_p;
-}
-
 /*************************\
  *      Main program     *
  \*************************/
@@ -87,24 +42,17 @@ int main()
 
     // Initialize particles
     const int num_particles = 1000;
-    //Particle threads
-    struct particle_pack thread_data[NUM_THREADS];
+    std::vector<particle> particles;
 
-    for(int i = 0; i < NUM_THREADS; i++){
-        int p_count = (num_particles/NUM_THREADS);
-        if(i == NUM_THREADS-1)
-            p_count += num_particles%NUM_THREADS;
-
-        for(int a = 0; a < p_count; a++){
-            particle tmp_p(2000.0*randf() - 1000, 2000.0*randf() - 1000);
-            tmp_p.theta = 2.0*M_PI*randf() - M_PI;
-            tmp_p.weight = 1.0/(double)num_particles;
-            thread_data[i].parts.push_back(tmp_p);
-        }
+    for(int i = 0; i < num_particles; i++){
+        particle tmp_p(2000.0*randf() - 1000, 2000.0*randf() - 1000);
+        tmp_p.theta = 2.0*M_PI*randf() - M_PI;
+        tmp_p.weight = 1.0/(double)num_particles;
+        particles.push_back(tmp_p);
     }
 
     // The estimate of the robots current pose
-    particle est_pose = est_pack_pos (thread_data, NUM_THREADS);
+    particle est_pose = estimate_pose (particles);
 
     // The camera interface  
     camera cam;
@@ -113,11 +61,11 @@ int main()
     const CvSize size = cvSize (480, 360);
 
     // Draw map
-    std::vector<particle> tmp_p = join_particles(thread_data, NUM_THREADS);
-    draw_world (est_pose, tmp_p, world);
+    draw_world (est_pose, particles, world);
 
     //command should be updated every time we move the robot
     particle command(0.0,0.0);
+    particleFilter pFilter(8);
 
     // Main loop
     while (true)
@@ -160,25 +108,11 @@ int main()
             }
 
 
+            //zeroP should be replaced with the landmark position
+            //we are observing
             particle zeroP(0, 0);
-            measurement meas(est_pose, measured_distance, measured_angle);
-
-            pthread_t threads[NUM_THREADS];
-            for(int i = 0; i < NUM_THREADS; i++){
-                thread_data[i].command = command;
-                thread_data[i].meas = meas;
-                pthread_create(&threads[i], NULL, startMclFilter,
-                        (void*)&thread_data[i]);
-            }
-
-            for(int i = 0; i < NUM_THREADS; i++)
-                pthread_join(threads[i], NULL);
-
-            // Compute particle weights
-            // XXX: You do this
-
-            // Resampling
-            // XXX: You do this
+            measurement meas(zeroP, measured_distance, measured_angle);
+            pFilter.filter(est_pose, command, meas, &particles);
 
             // Draw the object in the image (for visualisation)
             cam.draw_object (im);
@@ -186,20 +120,18 @@ int main()
         } else { // end: if (found_landmark)
 
             // No observation - reset weights to uniform distribution
-            for (int i = 0; i < NUM_THREADS; i++)
+            for (int i = 0; i < num_particles; i++)
             {
-                for(int a = 0; a < thread_data[i].parts.size(); a++)
-                    thread_data[i].parts[a].weight = 1.0/(double)num_particles;
+                particles[i].weight = 1.0/(double)num_particles;
             }
 
         }  // end: if (not found_landmark)
 
         // Estimate pose
-        est_pose = est_pack_pos (thread_data, NUM_THREADS);                   
+        est_pose =  estimate_pose(particles);                   
 
         // Visualisation
-        std::vector<particle> tmp_p = join_particles(thread_data, NUM_THREADS);
-        draw_world (est_pose, tmp_p, world);
+        draw_world (est_pose, particles, world);
         cvShowImage (map, world);
         cvShowImage (window, im);
     } // End: while (true)

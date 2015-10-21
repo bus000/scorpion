@@ -10,31 +10,11 @@
 #include <string>
 #include <stdlib.h>
 #include "math.h"
-<<<<<<< HEAD
 #include <pthread.h>
-=======
 #include "measurement.h"
->>>>>>> 5961d3bd0411c866bb851209d1b53220e0520ccf
 
 using namespace std;
 using namespace cv;
-
-<<<<<<< HEAD
-class measurement {
-public:
-  particle position;
-  double distance;
-  double angle;
-
-  measurement(int numThreads);
-  measurement(particle position, double distance, double angle) {
-    this->position = position;
-    this->distance = distance;
-    this->angle    = angle;
-  }
-
-  ~measurement() {};
-};
 
 class particleFilter {
 public:
@@ -60,11 +40,11 @@ public:
         int variance_thread_count;
         int weight_thread_count;
         int numThreads;
-        int distanceSum;
-        int variance;
-        int totalWeight;
+        double distanceSum;
+        double variance;
+        double totalWeight;
         int totalLength;
-    }
+    };
 
     struct thread_data_t {
         mutual_data_t *mutualData;
@@ -74,18 +54,14 @@ public:
 
     static double GaussianDist(double x, double sigma, double my);
     static void observationModel(thread_data_t *data_p);
+    static void dynamicModel(particleFilter::thread_data_t *data_p);
     static void normalizeWeights(thread_data_t *data_p);
-    static void resample(std::vector<particle> *particles);
+    static void resample(std::vector<particle> *particles, int limit);
+    mutual_data_t mutualData;
 
 private:
     struct thread_data_t *threadData;
     pthread_t *threads;
-    mutual_data_t mutualData;
 };
-
-void mclFilter(particle pose, particle command, measurement meas, vector<particle> &previous);
-=======
-void mclFilter(particle command, measurement meas, vector<particle> &previous);
->>>>>>> 5961d3bd0411c866bb851209d1b53220e0520ccf
 
 #endif
