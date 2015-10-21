@@ -5,17 +5,18 @@
 # Compile and link flags
 CXX         =  g++
 CXXFLAGS    =
-OPENCVFLAGS = `pkg-config opencv --cflags`
+OPENCVFLAGS = `pkg-config opencv playerc++ --cflags`
 CXXFLAGS    = $(OPENCVFLAGS)
-OPENCVLIBS  = `pkg-config opencv --libs`
+OPENCVLIBS  = `pkg-config opencv playerc++ --libs`
 
 # Main executable
 EXECUTABLE = exercise5
 
 # Files
-SOURCES = particles.cc random_numbers.cc camera.cc particleFilter.cpp
+SOURCES = particles.cc random_numbers.cc camera.cc particleFilter.cpp DriveCtl.hpp stateMachine.cpp
 CCFILES = $(EXECUTABLE).cc $(SOURCES)
 OBJECTS = $(patsubst %.cc, %.o, $(CCFILES))
+OBJECTS := $(patsubst %.cpp, %.o, $(OBJECTS))
 
 ## Compile everything ##
 all: $(EXECUTABLE)
@@ -25,7 +26,7 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CXX) $(OPENCVLIBS) -lpthread $(OBJECTS) -o $(EXECUTABLE)
 
 # Compilation.
-%.o : %.cc
+%.o : %.cc %.cpp
 	$(CXX) $(CXXFLAGS) -c $^ 
 
 # Cleaning up

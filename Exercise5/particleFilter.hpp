@@ -10,11 +10,16 @@
 #include <string>
 #include <stdlib.h>
 #include "math.h"
+<<<<<<< HEAD
 #include <pthread.h>
+=======
+#include "measurement.h"
+>>>>>>> 5961d3bd0411c866bb851209d1b53220e0520ccf
 
 using namespace std;
 using namespace cv;
 
+<<<<<<< HEAD
 class measurement {
 public:
   particle position;
@@ -79,5 +84,8 @@ private:
 };
 
 void mclFilter(particle pose, particle command, measurement meas, vector<particle> &previous);
+=======
+void mclFilter(particle command, measurement meas, vector<particle> &previous);
+>>>>>>> 5961d3bd0411c866bb851209d1b53220e0520ccf
 
 #endif
