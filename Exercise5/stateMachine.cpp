@@ -26,6 +26,7 @@ State RunState(State &state) {
 // Step 1: Searches for the first landmark.
 State TurnToFirstLandmark(State &state) {
   DriveCtl *control = state.driveControl;
+  measurement *meas;
 
   // Turn the robot until a landmark is found.
   while (true) {
@@ -33,7 +34,7 @@ State TurnToFirstLandmark(State &state) {
 
     meas = getMeasurement(state);
 
-    if (meas.landmark != NoLandmark) {
+    if (meas->landmark != NoLandmark) {
       state.lastMeas = meas;
       break;
     }
@@ -45,16 +46,16 @@ State TurnToFirstLandmark(State &state) {
   // TODO: Particle filter.
 
   state.currentStep     = GotoLandmark;
-  state.currentLandmark = meas.landmark;
+  state.currentLandmark = meas->landmark;
 
   return state;
 }
 
 // Step 2: Positions the robot at a right angle 150 cm from the landmark.
-State DriveToFirstLandmark(State &state) {
+State DriveToFirstLandmark(State &state) {
   DriveCtl *control = state.driveControl;
   
-  double dist = state.lastMeas->dist; 
+  double dist = state.lastMeas->distance; 
   double angl = state.lastMeas->angle;
   particle pos = state.lastMeas->position;
 
@@ -88,9 +89,9 @@ State TurnToSecondLandmark(State &state) {
   while (control->getYawed() < 355) { // MAGIC NUMBER
     control->turnLeft(15);
 
-    meas = getMeasurement(state);
+    measurement *meas = getMeasurement(state);
 
-    if (meas.landmark != NoLandmark && meas.landmark != state.currentLandmark) {
+    if (meas->landmark != NoLandmark && meas->landmark != state.currentLandmark) {
       state.lastMeas = meas;
       found = true;
       break;
@@ -119,7 +120,7 @@ State DriveToOtherSide(State &state) {
 
   control->resetCounters();
   control->goToPos(150, 150);
-  control->turnLeft(control->getYawed);
+  control->turnLeft(control->getYawed());
   control->resetCounters();
   control->goToPos(150, -150);
   control->resetCounters();
@@ -137,9 +138,9 @@ State DriveToFinishPosition(State &state) {
 
   control->setXPos(pose.x);
   control->setYPos(pose.y);
-  control->setYaw(pose.angle);
+  control->setYaw(pose.theta);
 
-  goToPos(0, 150);
+  control->goToPos(0, 150);
   control->resetCounters();
 
   // DONE
@@ -151,6 +152,6 @@ void PrintState(State state) {
   printf("Task:\t");
 }
 
-measurement getMeasurement(State &state) {
-  return new measurement(state.cam, state.image); 
+measurement* getMeasurement(State &state) {
+  return (new measurement(state.cam, state.image));
 }

@@ -7,19 +7,12 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "particles.h"
-#include "measurement.h"
+#include "measurement.hpp"
 #include "DriveCtl.hpp"
 #include "math.h"
 #include <libplayerc++/playerc++.h>
 
 using namespace std;
-
-enum ObservedLandmark {
-  NoLandmark,
-  RedLandmark,
-  GreenLandmark,
-  BothLandmarks
-};
 
 enum TaskStep {
   FirstSearch,
@@ -46,7 +39,7 @@ class State {
          , PlayerCc::Position2dProxy *position
          , camera &cam
          , IplImage &im
-         , particle position)
+         , particle landmarkPosition)
     {
       this->particles = particles;
       this->currentStep = FirstSearch;
@@ -60,6 +53,6 @@ class State {
     }
 };
 
-measurement getMeasurement(State state);
+measurement* getMeasurement(State &state);
 
 #endif

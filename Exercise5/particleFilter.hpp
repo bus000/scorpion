@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include "math.h"
 #include <pthread.h>
-#include "measurement.h"
+#include "measurement.hpp"
 
 using namespace std;
 using namespace cv;
