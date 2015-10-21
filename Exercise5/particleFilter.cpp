@@ -1,125 +1,181 @@
 #include "particleFilter.hpp"
+#include <cstdlib>
+#include <cstring>
 
-static double GaussianDist(double x, double sigma, double my = 1){
+static double particleFilter::GaussianDist(double x, double sigma, double my = 0){
     return (1/sqrt(2*M_PI*sigma))*exp(-1*(pow(my-x,2)/(2*sigma)));
 }
 
-// Assume that weights are normalized.
-particle drawParticle(vector<particle> particles) {
-    vector<double> adjusted;
+particleFilter::particleFilter(int numThreads){
+    this->mutualData.numThreads = numThreads;
+    this->threads = new pthread_t[numThreads];
+    this->threadData = new thread_data_T[numThreads];
+    pthread_mutex_init(&this->mutualData.lock_mean);
+    pthread_mutex_init(&this->mutualData.lock_variance);
+    pthread_mutex_init(&this->mutualData.lock_weight);
+    pthread_cond_init(&this->mutualData.cond_mean);
+    pthread_cond_init(&this->mutualData.cond_variance);
+    pthread_cond_init(&this->mutualData.cond_weight);
 
-    adjusted.push_back(0.0);
-
-    // Scan particle weights.
-    for (int i = 0; i < particles.size(); i++) {
-        double w = adjusted.back();
-        adjusted.push_back(w + particles[i].weight);
-    }
-
-    // Get a random number.
-    double toss = randf();
-
-    // Pick a particle based on the toss.
-    for (int i = 0; i < adjusted.size(); i++) {
-        double w1 = adjusted[i];
-        double w2 = adjusted[i+1];
-
-        if (toss > w1 && toss < w2) {
-            return particles[i];
-        }
-    }
-
-    return particles.back();
+    for(int i = 0; i < numThreads; i++)
+        this->threadData[i].mutualData = &this->mutualData;
 }
 
-// Move particle according to robot command.
-//particle dynamicModel(particle target, particle command) {
-//    particle p(0, 0, 0, 0); 
-//    move_particle(p, target.x, target.y, 0);
-//    move_particle(p, command.x, command.y, 0);
-//    uncertain_particle(p, 1.5, 0.0);
-//    return p;
-//}
+particleFilter::~particleFilter(){
+    delete[] this->threads;
+    delete[] this->threadData;
+    pthread_mutex_destroy(&this->mutualData.lock_mean);
+    pthread_mutex_destroy(&this->mutualData.lock_variance);
+    pthread_mutex_destroy(&this->mutualData.lock_weight);
+    pthread_cond_destroy(&this->mutualData.cond_mean);
+    pthread_cond_destroy(&this->mutualData.cond_variance);
+    pthread_cond_destroy(&this->mutualData.cond_lock);
+}
 
-void dynamicModel(vector<particle> &parts, particle command){
-    for(int i = 0; i < parts.size(); i++){
+void particleFilter::filter(particle position, particle command, measurement meas,
+        vector<particle> *parts){
+
+    this->mutualData.position = &position;
+    this->mutualData.command = &command;
+    this->mutualData.meas = &meas;
+    this->mutualData.mean_thread_count =
+        this->mutualData.variance_thread_count = 0;
+    this->mutualData.distanceSum = 0;
+    this->mutualData.variance = 0;
+    this->mutualData.totalLength = parts.size();
+    this->mutualData.totalWeight = 0;
+
+    for(int i = 0; i < this->mutualData.numThreads; i++){
+        this->threadData[i].length = parts.size()/this->mutualData.numThreads;
+        if(i == this->mutualData.numThreads-1)
+            this->threadData[i].length += parts.size()%this->mutualData.numThreads;
+        this->threadData[i].particles =
+            parts.data+(i*(parts.size()/this->mutualData.numThreads));
+
+        pthread_create(&this->threads[i], NULL,
+                particleFilter::threadStart, (void*)&this->threadData[i]);
+    }
+
+    for(int i = 0; i < this->mutualData.numThreads; i++){
+        pthread_join(this->threads[i], NULL);
+    }
+
+    particleFilter::resample(parts, parts.size());
+}
+
+static void particleFilter::observationModel(thread_data_t *data_p){
+    particleFilter::mutual_data_t *mutualData = data_p->mutualData;
+
+    vector<double> distances;
+    double ownDistanceSum = 0.0;
+    double ownVariance = 0.0;
+    double mean;
+    double stdVariance;
+
+    //calculate distance from particle p to observation
+    for(int i = 0; i < data_p->length; i++){
+        particle p = data_p->particles[i];
+        double distance = sqrt(pow(p.x-mutualData->meas->position.x, 2)
+                +pow(p.y-mutualData->meas->position.y, 2));
+        distances.push(distance);
+        ownSum += distance;
+    }
+
+    //Sum the distances sum for all threads
+    pthread_mutex_lock(&mutualData->lock_mean);
+    mutualData->distanceSum += ownSum;
+    mutualData->mean_thread_count++;
+    pthread_cond_broadcast(&mutualData->cond_mean);
+    while(mutualData->mean_thread_count < mutualData->numThreads)
+        pthread_cond_wait(&mutualData->cond_mean, &mutualData->lock_mean);
+    pthread_mutex_unlock(&mutualData->lock_mean);
+
+    //calculate distance mean
+    mean = mutualData->distanceSum/mutualData->totalLength;
+
+    //Calculate the variance for every particle
+    for(int i = 0; i < data_p->length; i++)
+        ownVariance += pow(mean - distances[i], 2);
+
+    //Sum the distance variance for all threads
+    pthread_mutex_lock(&mutualData->lock_variance);
+    mutualData->variance += ownVariance;
+    mutualData->variance_thread_count++;
+    pthread_cond_broadcast(&mutualData->cond_variance);
+    while(mutualData->variance_thread_count < mutualData->numThreads)
+        pthread_cond_wait(&mutualData->cond_variance, &mutualData->lock_variance);
+    pthread_mutex_unlock(&mutualData->lock_variance);
+
+    stdVariance = sqrt(mutualData->variance);
+
+    for(int i = 0; i < data_p->length; i++)
+        data_p->particles[i].weight =
+            particleFilter::GaussianDist(mutualData->meas->distance,
+                stdVariance, distances[i]);
+}
+
+static void particleFilter::dynamicModel(particleFilter::thread_data_t *data_p){
+    particle command = *data_p->mutualData->command;
+
+    for(int i = 0; i < data_p->length; i++){
         move_particle(
-            parts[i],
+            data_p->particles[i],
             command.x,
             command.y,
             command.theta
         );
-        uncertain_particle(parts[i], 1.5, 0.0);
+        uncertain_particle(data_p->particles[i], 1.5, 0.0);
     }
 }
 
-// Calculate weight according to measurement.
-//double measurementModel(particle pos, particle target, measurement meas) {
-//    Point p(target.x, target.y);
-//    Point m(meas.position.x, meas.position.y);
-//
-//    double dist = norm(p - m);
-//    double angf = fabs((target.theta + 2 * M_PI) - (meas.angle + 2 * M_PI)) / M_PI;
-//    double angd = angf * dist;
-//
-//    return GaussianDist(meas.distance);
-//
-//    return GaussianDist(dist, meas.distance)
-//        * GaussianDist(meas.angle);
-//}
+static void normalizeWeights(thread_data_t *data_p){
+    particleFilter::mutual_data_t *mutualData = data_p->mutualData;
+    double ownTotalWeight = 0.0;
 
-// Calculate weight according to measurements
-void observationModel(vector<particle> &parts, measurement meas){
-    //something simlar have to be done with the angle(s)
-    double mean = 0.0;
-    vector<double> distances;
-    double stdVariance = 0.0;
-
-    for(int i = 0; i < parts.size(); i++){
-        double distance = sqrt(pow(parts[i].x-meas.position.x, 2)
-                +pow(parts[i].y-meas.position.y, 2));
-        distances.push_back(distance);
-        mean += distance;
-    }
-    mean /= parts.size();
+    for(int i = 0; i < data_p->length; i++)
+        ownTotalWeight += data_p->particles[i].weight;
     
-    for(int i = 0; i < parts.size(); i++){
-        stdVariance += pow(mean - distances[i], 2);
-    }
-    stdVariance = sqrt(stdVariance);
+    pthread_mutex_lock(&mutualData->lock_weight);
+    mutualData->totalWeight += ownTotalWeight;
+    mutualData->weight_thread_count++;
+    pthread_cond_broadcast(&mutualData->cond_weight);
+    while(mutualData->weight_thread_count < mutualData->numThreads)
+        pthread_cond_wait(&mutualData->cond_weight, &mutualData->lock_weight);
+    pthread_mutex_unlock(&mutualData->lock_weight);
 
-    for(int i = 0; i < parts.size(); i++){
-        parts[i].weight
-            = GaussianDist(meas.distance, stdVariance, distances[i]);
-    }
+    for(int i = 0; i < data_p->length; i++)
+        data_p->particles[i].weight /= mutualData->totalWeight;
 }
 
-// Does one iteration of the Bootstap/Monte Carlo Localiation algorithm.
-void mclFilter(particle command, measurement meas, vector<particle> &previous) {
-    vector<particle> newParts;
+static void particleFilter::resample(vector<particle *particles, int limit){
+    vector<particle> newParticles;
+    vector<double> weightGraf;
 
-    // Move all particles according to command and calculate weight according to measurement.
-    dynamicModel(previous, command);
-    observationModel(previous, meas);
+    weightGraf.push(0.0);
 
-    // Calculate total weight.
-    double totalWeight;
-    for (int i = 0; i < previous.size(); i++) {
-        totalWeight += previous[i].weight;
+    for(int i = 0; i < particles.size(); i++)
+        weightGraf.push_back(weightGraf.back() + particles[i].weight);
+
+    for(int i = 0; i < limit; i++){
+        double toss = randf();
+
+        for(int a = 0; a < particles.size(); a++){
+            double w1 = weightGraf[i];
+            double w2 = weightGraf[i+1];
+
+            if(toss > w1 && toss < w2)
+                newParticles.push_back(particles[i]);
+        }
     }
 
-    // Normalize weights.
-    for (int i = 0; i < previous.size(); i++) {
-        previous[i].weight /= totalWeight;
-    }
-
-    // Resample particles.
-    for (int i = 0; i < previous.size(); i++) {
-        particle p = drawParticle(previous);
-        newParts.push_back(p);
-    }
-
-    add_uncertainty(newParts, 4.0, 0.0);
-    previous = newParts;
+    *particles = newParticles;
 }
 
+static void* particleFilter::threadStart(void* data){
+    particleFilter::thread_data_t *data_p = (particleFilter::thread_data_t*)data;
+    particleFilter::observationModel(data_p);
+    particleFilter::dynamicModel(data_p);
+    particleFilter::normalizeWeight(data_p);
+
+    pthread_exit(NULL);
+}
