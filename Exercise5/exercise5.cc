@@ -12,6 +12,8 @@
 #include "particles.h"
 #include "random_numbers.h"
 #include "particleFilter.hpp"
+#include "state.hpp"
+#include "stateMachine.hpp"
 
 /*
  * Keyboard constants
@@ -26,10 +28,58 @@
  */
 #define NUM_THREADS 8
 
+int main() {
+  // The GUI
+  const char *map = "World map";
+  const char *window = "Robot View";
+  IplImage *world = cvCreateImage (cvSize (500,500), IPL_DEPTH_8U, 3);
+  cvNamedWindow (map, CV_WINDOW_AUTOSIZE);
+  cvNamedWindow (window, CV_WINDOW_AUTOSIZE);
+  cvMoveWindow (window, 20, 20);
+
+  // The camera interface  
+  camera cam;
+
+  // Parameters
+  const CvSize size = cvSize (480, 360);
+
+  // Initialize particles
+  const int num_particles = 1000;
+  std::vector<particle> particles;
+
+  for(int i = 0; i < num_particles; i++){
+      particle tmp_p(2000.0*randf() - 1000, 2000.0*randf() - 1000);
+      tmp_p.theta = 360.0 * randf();
+      tmp_p.weight = 1.0/(double)num_particles;
+      particles.push_back(tmp_p);
+  }
+
+  // Initialize robot and position proxy.
+  PlayerClient robot("192.168.240.129");
+  Position2dProxy position(&robot);
+  
+  // Initialize state.
+  State state(particles, &robot, &position, &cam, world, estimate_pose(particles));
+
+  /* -- MAIN LOOP -- */
+  while (true) {
+    // Run state machine.
+    RunState(state);
+
+    // Draw map.
+    draw_world (est_pose, particles, world);
+    cvShowImage (map, world);
+    cvShowImage (window, im);
+    cam.draw_object (im);
+
+    // TODO: Maybe run particle filter?
+  } 
+}
+
 /*************************\
  *      Main program     *
  \*************************/
-int main() 
+int oldmain() 
 {
     // The GUI
     const char *map = "World map";

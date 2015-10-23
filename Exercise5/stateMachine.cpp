@@ -9,6 +9,8 @@ State DriveToOtherSide(State &state);
 State RunState(State &state) {
   printf("State: %s\n", state.currentStep);
 
+  state.estimatedPose = estimate_pose(state.particles);
+
   switch(state.currentStep) {
     case FirstSearch:
       return TurnToFirstLandmark(state);
@@ -43,11 +45,12 @@ State TurnToFirstLandmark(State &state) {
     else
       delete meas;
   }
+  // TODO: Particle filter.
+
   control->resetCounters();
 
   printf("Found first landmark at (%d, %d, %d)\n", meas.position.x, meas.position.y, meas.angle);
 
-  // TODO: Particle filter.
 
   state.currentStep     = GotoLandmark;
   state.currentLandmark = meas->landmark;
@@ -103,18 +106,19 @@ State TurnToSecondLandmark(State &state) {
     else
       delete meas;
   }
-  control->resetCounters();
   
   if (found) {
     measurement *meas = state.lastMeas;
     printf("Found second landmark at (%d, %d, %d)\n", meas.position.x, meas.position.y, meas.angle);
 
     // TODO: Particle filter with new landmark.
+    control->resetCounters();
 
     state.currentStep     = GotoFinish;
     state.currentLandmark = BothLandmarks;
   }
   else {
+    control->resetCounters();
     state.currentStep = GotoOtherSide;
   }
 
