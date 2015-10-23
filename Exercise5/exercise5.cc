@@ -73,13 +73,14 @@ int main() {
     cam.draw_object (im);
 
     // TODO: Maybe run particle filter?
-  } 
+  }
 }
 
 /*************************\
  *      Main program     *
  \*************************/
-int oldmain() 
+#if 0
+int oldmain()
 {
     // The GUI
     const char *map = "World map";
@@ -196,3 +197,4 @@ theend:
 
     return 0;
 }
+#endif
