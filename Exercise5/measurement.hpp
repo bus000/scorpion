@@ -36,7 +36,7 @@ public:
         this->angle    = angle;
     }
 
-    ~measurement() {};
+    ~measurement(void);
 };
 
 #endif

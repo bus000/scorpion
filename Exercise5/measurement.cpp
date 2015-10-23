@@ -28,3 +28,7 @@ measurement::measurement(camera &cam, IplImage &im)
     }
 }
 
+measurement::~measurement(void)
+{
+    delete this->position;
+}
