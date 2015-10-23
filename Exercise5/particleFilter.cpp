@@ -155,7 +155,7 @@ void particleFilter::angleObservationModel(thread_data_t * data_p){
         pthread_cond_wait(&mutualData->cond_variance, &mutualData->lock_variance);
     pthread_mutex_unlock(&mutualData->lock_variance);
 
-    stdVariance = sqrt(mutualData->variance);
+    stdVariance = sqrt(mutualData->a_variance);
 
     //update particle weight
     for(int i = 0; i < data_p->length; i++){
@@ -307,7 +307,7 @@ void* particleFilter::threadStart(void* data){
         
         //And we have data, let the action begin!!
         if(data_p->mutualData->meas->landmark != NoLandmark){
-            //particleFilter::distObservationModel(data_p);
+            particleFilter::distObservationModel(data_p);
             particleFilter::angleObservationModel(data_p);
         }else{
             particleFilter::resetWeight(data_p);
