@@ -14,23 +14,45 @@ particleFilter::particleFilter(int numThreads){
     pthread_mutex_init(&this->mutualData.lock_mean, NULL);
     pthread_mutex_init(&this->mutualData.lock_variance, NULL);
     pthread_mutex_init(&this->mutualData.lock_weight, NULL);
+    pthread_mutex_init(&this->mutualData.data_ready_lock, NULL);
+    pthread_mutex_init(&this->mutualData.calculation_lock, NULL);
+    pthread_mutex_init(&this->mutualData.thread_terminate_lock, NULL);
     pthread_cond_init(&this->mutualData.cond_mean, NULL);
     pthread_cond_init(&this->mutualData.cond_variance, NULL);
     pthread_cond_init(&this->mutualData.cond_weight, NULL);
+    pthread_cond_init(&this->mutualData.data_ready_cond, NULL);
+    pthread_cond_init(&this->mutualData.calculation_cond, NULL);
 
     for(int i = 0; i < numThreads; i++)
         this->threadData[i].mutualData = &this->mutualData;
+
+    //set thread termination lock
+    pthread_mutex_lock(&this->mutualData.thread_terminate_lock);
+
+    //spin up threads
+    for(int i = 0; i < numThreads; i++)
+        pthread_create(&this->threads[i], NULL,
+                threadStart, (void*)&this->threadData[i]);
 }
 
 particleFilter::~particleFilter(){
+    pthread_mutex_unlock(&this->mutualData.thread_terminate_lock);
+    for(int i = 0; i < this->mutualData.numThreads; i++)
+        pthread_join(this->threads[i], NULL);
+
     delete[] this->threads;
     delete[] this->threadData;
     pthread_mutex_destroy(&this->mutualData.lock_mean);
     pthread_mutex_destroy(&this->mutualData.lock_variance);
     pthread_mutex_destroy(&this->mutualData.lock_weight);
+    pthread_mutex_destroy(&this->mutualData.data_ready_lock);
+    pthread_mutex_destroy(&this->mutualData.calculation_lock);
+    pthread_mutex_destroy(&this->mutualData.thread_terminate_lock);
     pthread_cond_destroy(&this->mutualData.cond_mean);
     pthread_cond_destroy(&this->mutualData.cond_variance);
     pthread_cond_destroy(&this->mutualData.cond_weight);
+    pthread_cond_destroy(&this->mutualData.calculation_cond);
+    pthread_cond_destroy(&this->mutualData.data_ready_cond);
 }
 
 void particleFilter::filter(particle command, measurement meas,
@@ -51,6 +73,7 @@ void particleFilter::filter(particle command, measurement meas,
     this->mutualData.a_mean_thread_count = 0;
     this->mutualData.a_variance_thread_count = 0;
 
+    //initialize data to be calculated
     for(int i = 0; i < this->mutualData.numThreads; i++){
         this->threadData[i].length = parts->size()/this->mutualData.numThreads;
         if(i == this->mutualData.numThreads-1)
@@ -58,14 +81,18 @@ void particleFilter::filter(particle command, measurement meas,
 
         this->threadData[i].particles =
             parts->data()+(i*(parts->size()/this->mutualData.numThreads));
-
-        pthread_create(&this->threads[i], NULL,
-                particleFilter::threadStart, (void*)&this->threadData[i]);
     }
 
-    for(int i = 0; i < this->mutualData.numThreads; i++){
-        pthread_join(this->threads[i], NULL);
-    }
+    //wake working threads
+    this->mutualData.calculation_counter = 0;
+    pthread_cond_broadcast(&this->mutualData.data_ready_cond);
+
+    //wait for threads to finish
+    pthread_mutex_lock(&this->mutualData.calculation_lock);
+    while(this->mutualData.calculation_counter < this->mutualData.numThreads)
+        pthread_cond_wait(&this->mutualData.calculation_cond,
+                &this->mutualData.calculation_lock);
+    pthread_mutex_unlock(&this->mutualData.calculation_lock);
 
     particleFilter::resample(parts, parts->size());
 }
@@ -199,7 +226,7 @@ void particleFilter::dynamicModel(particleFilter::thread_data_t *data_p){
             command.y,
             command.theta
         );
-        uncertain_particle(data_p->particles[i], 1.5, 0.0);
+        uncertain_particle(data_p->particles[i], 1.5, 0.1);
     }
 }
 
@@ -264,14 +291,37 @@ void particleFilter::resetWeight(particleFilter::thread_data_t *data_p){
 
 void* particleFilter::threadStart(void* data){
     particleFilter::thread_data_t *data_p = (particleFilter::thread_data_t*)data;
-    if(data_p->mutualData->meas->landmark != NoLandmark){
-        particleFilter::distObservationModel(data_p);
-        particleFilter::angleObservationModel(data_p);
-    }else{
-        particleFilter::resetWeight(data_p);
+
+    while(true){
+        //check for termination
+        if(!pthread_mutex_trylock(&data_p->mutualData->thread_terminate_lock)){
+            pthread_mutex_unlock(&data_p->mutualData->thread_terminate_lock);
+            break;
+        }
+
+        //wait for data ready signal
+        pthread_mutex_lock(&data_p->mutualData->data_ready_lock);
+        pthread_cond_wait(&data_p->mutualData->data_ready_cond,
+                &data_p->mutualData->data_ready_lock);
+        pthread_mutex_unlock(&data_p->mutualData->data_ready_lock);
+        
+        //And we have data, let the action begin!!
+        if(data_p->mutualData->meas->landmark != NoLandmark){
+            //particleFilter::distObservationModel(data_p);
+            particleFilter::angleObservationModel(data_p);
+        }else{
+            particleFilter::resetWeight(data_p);
+        }
+        particleFilter::dynamicModel(data_p);
+        particleFilter::normalizeWeights(data_p);
+
+        //Signal that we are done with the calculation
+        pthread_mutex_lock(&data_p->mutualData->calculation_lock);
+        data_p->mutualData->calculation_counter++;
+        pthread_cond_signal(&data_p->mutualData->calculation_cond);
+        pthread_mutex_unlock(&data_p->mutualData->calculation_lock);
     }
-    particleFilter::dynamicModel(data_p);
-    particleFilter::normalizeWeights(data_p);
 
     pthread_exit(NULL);
 }
+

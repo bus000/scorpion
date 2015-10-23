@@ -29,6 +29,14 @@ public:
         particle *command;
         measurement *meas;
         ////////////////////////////////////
+        //Thread pool control
+        pthread_mutex_t thread_terminate_lock;
+        pthread_mutex_t data_ready_lock;
+        pthread_mutex_t calculation_lock;
+        pthread_cond_t data_ready_cond;
+        pthread_cond_t calculation_cond;
+        int calculation_counter;
+        ///////////////////////////////////
         pthread_mutex_t lock_mean;
         pthread_mutex_t lock_variance;
         pthread_cond_t cond_mean;
