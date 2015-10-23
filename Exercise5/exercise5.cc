@@ -76,6 +76,8 @@ int main() {
   } 
 }
 
+#ifdef _THIS_IS_NOT_DEFINED_
+
 /*************************\
  *      Main program     *
  \*************************/
@@ -196,3 +198,5 @@ theend:
 
     return 0;
 }
+
+#endif
