@@ -20,13 +20,12 @@ class particleFilter {
 public:
     particleFilter(int numThreads);
     ~particleFilter();
-    void filter(particle position, particle command, measurement meas,
+    void filter(particle command, measurement meas,
             vector<particle> *parts);
     static void* threadStart(void *data);
 
     struct mutual_data_t {
         //Only alive while filter is running
-        particle *position;
         particle *command;
         measurement *meas;
         ////////////////////////////////////
@@ -39,10 +38,14 @@ public:
         int mean_thread_count;
         int variance_thread_count;
         int weight_thread_count;
+        int a_mean_thread_count;
+        int a_variance_thread_count;
         int numThreads;
         double distanceSum;
         double variance;
         double totalWeight;
+        double angleSum;
+        double a_variance;
         int totalLength;
     };
 
@@ -53,10 +56,12 @@ public:
     };
 
     static double GaussianDist(double x, double sigma, double my);
-    static void observationModel(thread_data_t *data_p);
+    static void distObservationModel(thread_data_t *data_p);
+    static void angleObservationModel(thread_data_t * data_p);
     static void dynamicModel(particleFilter::thread_data_t *data_p);
     static void normalizeWeights(thread_data_t *data_p);
     static void resample(std::vector<particle> *particles, int limit);
+    static void resetWeight(particleFilter::thread_data_t *data_p);
     mutual_data_t mutualData;
 
 private:

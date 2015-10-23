@@ -36,40 +36,40 @@ camera::camera (const int idx)
   cvSetCaptureProperty (cam, CV_CAP_PROP_FRAME_HEIGHT, imsize.height);
   
   // Camera parameters from the caibration of the Scorpion camera
+  //intrinsic_matrix = cvCreateMat(3, 3, CV_64FC1);
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 0, 1) = 0;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 1, 0) = 0;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 2, 0) = 0;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 2, 1) = 0;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 2, 2) = 1;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 0, 0) = 8.6955302212233869e+02;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 0, 2) = 5.2076864848745902e+02;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 1, 1) = 8.7317664932843684e+02;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 1, 2) = 4.0331768178896669e+02;
+
+  //distortion_coeffs = cvCreateMat(1, 5, CV_64FC1);
+  //CV_MAT_ELEM(*distortion_coeffs, double, 0, 0) = -1.2844325433988565e-01;
+  //CV_MAT_ELEM(*distortion_coeffs, double, 0, 1) =  -1.3646926538980573e+00;
+  //CV_MAT_ELEM(*distortion_coeffs, double, 0, 2) = -5.7263071423202944e-03;
+  //CV_MAT_ELEM(*distortion_coeffs, double, 0, 3) =  5.7422957803983802e-03;
+  //CV_MAT_ELEM(*distortion_coeffs, double, 0, 4) =  5.9722099836744738e+00;
+       
   intrinsic_matrix = cvCreateMat(3, 3, CV_64FC1);
   CV_MAT_ELEM(*intrinsic_matrix, double, 0, 1) = 0;
   CV_MAT_ELEM(*intrinsic_matrix, double, 1, 0) = 0;
   CV_MAT_ELEM(*intrinsic_matrix, double, 2, 0) = 0;
   CV_MAT_ELEM(*intrinsic_matrix, double, 2, 1) = 0;
   CV_MAT_ELEM(*intrinsic_matrix, double, 2, 2) = 1;
-  CV_MAT_ELEM(*intrinsic_matrix, double, 0, 0) = 8.6955302212233869e+02;
-  CV_MAT_ELEM(*intrinsic_matrix, double, 0, 2) = 5.2076864848745902e+02;
-  CV_MAT_ELEM(*intrinsic_matrix, double, 1, 1) = 8.7317664932843684e+02;
-  CV_MAT_ELEM(*intrinsic_matrix, double, 1, 2) = 4.0331768178896669e+02;
+  CV_MAT_ELEM(*intrinsic_matrix, double, 0, 0) = 476.36883;
+  CV_MAT_ELEM(*intrinsic_matrix, double, 0, 2) = 239.23852;
+  CV_MAT_ELEM(*intrinsic_matrix, double, 1, 1) = 482.93459;
+  CV_MAT_ELEM(*intrinsic_matrix, double, 1, 2) = 245.90425;
 
-  distortion_coeffs = cvCreateMat(1, 5, CV_64FC1);
-  CV_MAT_ELEM(*distortion_coeffs, double, 0, 0) = -1.2844325433988565e-01;
-  CV_MAT_ELEM(*distortion_coeffs, double, 0, 1) =  -1.3646926538980573e+00;
-  CV_MAT_ELEM(*distortion_coeffs, double, 0, 2) = -5.7263071423202944e-03;
-  CV_MAT_ELEM(*distortion_coeffs, double, 0, 3) =  5.7422957803983802e-03;
-  CV_MAT_ELEM(*distortion_coeffs, double, 0, 4) =  5.9722099836744738e+00;
-       
-//  intrinsic_matrix = cvCreateMat(3, 3, CV_64FC1);
-//  CV_MAT_ELEM(*intrinsic_matrix, double, 0, 1) = 0;
-//  CV_MAT_ELEM(*intrinsic_matrix, double, 1, 0) = 0;
-//  CV_MAT_ELEM(*intrinsic_matrix, double, 2, 0) = 0;
-//  CV_MAT_ELEM(*intrinsic_matrix, double, 2, 1) = 0;
-//  CV_MAT_ELEM(*intrinsic_matrix, double, 2, 2) = 1;
-//  CV_MAT_ELEM(*intrinsic_matrix, double, 0, 0) = 476.36883;
-//  CV_MAT_ELEM(*intrinsic_matrix, double, 0, 2) = 239.23852;
-//  CV_MAT_ELEM(*intrinsic_matrix, double, 1, 1) = 482.93459;
-//  CV_MAT_ELEM(*intrinsic_matrix, double, 1, 2) = 245.90425;
-//
-//  distortion_coeffs = cvCreateMat(1, 4, CV_64FC1);
-//  CV_MAT_ELEM(*distortion_coeffs, double, 0, 0) = -0.29624;
-//  CV_MAT_ELEM(*distortion_coeffs, double, 0, 1) =  0.13749;
-//  CV_MAT_ELEM(*distortion_coeffs, double, 0, 2) = -0.01171;
-//  CV_MAT_ELEM(*distortion_coeffs, double, 0, 3) =  0.01984;
+  distortion_coeffs = cvCreateMat(1, 4, CV_64FC1);
+  CV_MAT_ELEM(*distortion_coeffs, double, 0, 0) = -0.29624;
+  CV_MAT_ELEM(*distortion_coeffs, double, 0, 1) =  0.13749;
+  CV_MAT_ELEM(*distortion_coeffs, double, 0, 2) = -0.01171;
+  CV_MAT_ELEM(*distortion_coeffs, double, 0, 3) =  0.01984;
   
   // Initialise undistortion map
   mapx = cvCreateMat (imsize.height, imsize.width, CV_32FC1);

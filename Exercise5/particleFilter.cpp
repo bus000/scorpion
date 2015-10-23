@@ -33,19 +33,23 @@ particleFilter::~particleFilter(){
     pthread_cond_destroy(&this->mutualData.cond_weight);
 }
 
-void particleFilter::filter(particle position, particle command, measurement meas,
+void particleFilter::filter(particle command, measurement meas,
         vector<particle> *parts){
     particle est_pose;
 
-    this->mutualData.position = &position;
     this->mutualData.command = &command;
     this->mutualData.meas = &meas;
     this->mutualData.mean_thread_count =
-        this->mutualData.variance_thread_count = 0;
+        this->mutualData.variance_thread_count =
+        this->mutualData.weight_thread_count = 0;
     this->mutualData.distanceSum = 0;
     this->mutualData.variance = 0;
     this->mutualData.totalLength = parts->size();
     this->mutualData.totalWeight = 0;
+    this->mutualData.angleSum = 0.0;
+    this->mutualData.a_variance = 0.0;
+    this->mutualData.a_mean_thread_count = 0;
+    this->mutualData.a_variance_thread_count = 0;
 
     for(int i = 0; i < this->mutualData.numThreads; i++){
         this->threadData[i].length = parts->size()/this->mutualData.numThreads;
@@ -63,12 +67,78 @@ void particleFilter::filter(particle position, particle command, measurement mea
         pthread_join(this->threads[i], NULL);
     }
 
-    est_pose =  estimate_pose(*parts);                   
     particleFilter::resample(parts, parts->size());
-    cout << "position: (" << est_pose.x << ", " << est_pose.y << ")" << endl;
 }
 
-void particleFilter::observationModel(thread_data_t *data_p){
+void particleFilter::angleObservationModel(thread_data_t * data_p){
+    particleFilter::mutual_data_t *mutualData = data_p->mutualData;
+
+    vector<double> angles;
+    double ownAngleSum = 0.0;
+    double ownVariance = 0.0;
+    double mean;
+    double stdVariance;
+
+    //calculate angle between particle p and the obervation
+    for(int i = 0; i < data_p->length; i++){
+        double P[2] = {
+            cos(data_p->particles[i].theta),
+            sin(data_p->particles[i].theta)
+        };
+        double L[2] = {
+            mutualData->meas->position.x - P[0],
+            mutualData->meas->position.y - P[1]
+        };
+        double dotProd = P[0]*L[0]+P[1]*L[1];
+        double Llength = sqrt(pow(L[0],2)+pow(L[1],2));
+        double tmp = dotProd/Llength;
+        if(tmp < -1.0) tmp = -1.0;
+        if(tmp > 1.0) tmp = 1.0;
+        double pAngle = acos(tmp);
+
+        if(pAngle > M_PI)
+            pAngle -= 2*M_PI;
+        
+        angles.push_back(pAngle);
+        ownAngleSum += pAngle;
+    }
+
+    //Sum the angles for all threads
+    pthread_mutex_lock(&mutualData->lock_mean);
+    mutualData->angleSum += ownAngleSum;
+    mutualData->a_mean_thread_count++;
+    pthread_cond_broadcast(&mutualData->cond_mean);
+    while(mutualData->a_mean_thread_count < mutualData->numThreads)
+        pthread_cond_wait(&mutualData->cond_mean, &mutualData->lock_mean);
+    pthread_mutex_unlock(&mutualData->lock_mean);
+
+    //Calculate angle mean
+    mean = mutualData->angleSum/mutualData->totalLength;
+
+    //Calculate the angle variance for every particle
+    for(int i = 0; i < data_p->length; i++)
+        ownVariance += pow(mean - angles[i], 2);
+
+    //Sum the angle variance for all threads
+    pthread_mutex_lock(&mutualData->lock_variance);
+    mutualData->a_variance += ownVariance;
+    mutualData->a_variance_thread_count++;
+    pthread_cond_broadcast(&mutualData->cond_variance);
+    while(mutualData->a_variance_thread_count < mutualData->numThreads)
+        pthread_cond_wait(&mutualData->cond_variance, &mutualData->lock_variance);
+    pthread_mutex_unlock(&mutualData->lock_variance);
+
+    stdVariance = sqrt(mutualData->variance);
+
+    //update particle weight
+    for(int i = 0; i < data_p->length; i++){
+        data_p->particles[i].weight *=
+            particleFilter::GaussianDist(mutualData->meas->angle,
+                    stdVariance, angles[i]);
+    }
+}
+
+void particleFilter::distObservationModel(thread_data_t *data_p){
     particleFilter::mutual_data_t *mutualData = data_p->mutualData;
 
     vector<double> distances;
@@ -156,29 +226,50 @@ void particleFilter::resample(vector<particle> *particles, int limit){
     vector<particle> newParticles;
     vector<double> weightGraf;
 
+    weightGraf.reserve(particles->size()+1);
     weightGraf.push_back(0.0);
 
     for(int i = 0; i < particles->size(); i++)
         weightGraf.push_back(weightGraf.back() + particles->at(i).weight);
 
+
     for(int i = 0; i < limit; i++){
+        int front = 0;
+        int back = weightGraf.size()-1;
         double toss = randf();
 
-        for(int a = 0; a < particles->size(); a++){
-            double w1 = weightGraf[a];
-            double w2 = weightGraf[a+1];
-
-            if(toss >= w1 && toss <= w2)
-                newParticles.push_back(particles->at(a));
+        while(front+1 != back){
+            int middle = front + (back-front)/2;
+            if(weightGraf[middle] == toss){
+                //will probably never happen
+                front = middle;
+                break;
+            }
+            if(weightGraf[middle] > toss)
+                back = middle;
+            else
+                front = middle;
         }
+
+        newParticles.push_back(particles->at(front));
     }
 
     *particles = newParticles;
 }
 
+void particleFilter::resetWeight(particleFilter::thread_data_t *data_p){
+    for(int i = 0; i < data_p->length; i++)
+        data_p->particles[i].weight = 1.0/data_p->mutualData->totalLength;
+}
+
 void* particleFilter::threadStart(void* data){
     particleFilter::thread_data_t *data_p = (particleFilter::thread_data_t*)data;
-    particleFilter::observationModel(data_p);
+    if(data_p->mutualData->meas->landmark != NoLandmark){
+        particleFilter::distObservationModel(data_p);
+        particleFilter::angleObservationModel(data_p);
+    }else{
+        particleFilter::resetWeight(data_p);
+    }
     particleFilter::dynamicModel(data_p);
     particleFilter::normalizeWeights(data_p);
 

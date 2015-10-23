@@ -3,6 +3,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <pthread.h>
+#include <ctime>
+#include <sys/time.h>
 
 #include <stdio.h>
 #include <iostream>
@@ -41,7 +43,7 @@ int main()
 
 
     // Initialize particles
-    const int num_particles = 1000;
+    const int num_particles = 200000;
     std::vector<particle> particles;
 
     for(int i = 0; i < num_particles; i++){
@@ -65,7 +67,7 @@ int main()
 
     //command should be updated every time we move the robot
     particle command(0.0,0.0);
-    particleFilter pFilter(8);
+    particleFilter pFilter(1);
 
     // Main loop
     while (true)
@@ -107,28 +109,47 @@ int main()
                 continue;
             }
 
-
+            struct timeval tv;
+            gettimeofday(&tv,NULL);
+            unsigned long start = 1000000 * tv.tv_sec + tv.tv_usec;
             //zeroP should be replaced with the landmark position
             //we are observing
             particle zeroP(0, 0);
             measurement meas(zeroP, measured_distance, measured_angle);
-            pFilter.filter(est_pose, command, meas, &particles);
+            meas.landmark = RedLandmark;
+            pFilter.filter(command, meas, &particles);
+
+            gettimeofday(&tv, NULL);
+            long unsigned diff = (1000000 * tv.tv_sec + tv.tv_usec) - start;
+            printf("Exec time: %d\n", diff);
+
+
+            printf("Robot angle: %f\n", est_pose.theta * 180/M_PI);
 
             // Draw the object in the image (for visualisation)
             cam.draw_object (im);
 
         } else { // end: if (found_landmark)
+            struct timeval tv;
+            gettimeofday(&tv,NULL);
+            unsigned long start = 1000000 * tv.tv_sec + tv.tv_usec;
 
-            // No observation - reset weights to uniform distribution
-            for (int i = 0; i < num_particles; i++)
-            {
-                particles[i].weight = 1.0/(double)num_particles;
-            }
+
+            particle zeroP(0, 0);
+            measurement meas(zeroP, 0, 0);
+            meas.landmark = NoLandmark;
+            pFilter.filter(command, meas, &particles);
+            
+            gettimeofday(&tv, NULL);
+            long unsigned diff = (1000000 * tv.tv_sec + tv.tv_usec) - start;
+            printf("Exec time: %d\n", diff);
+
 
         }  // end: if (not found_landmark)
 
         // Estimate pose
         est_pose =  estimate_pose(particles);                   
+        printf("robot: (%f, %f)\n", est_pose.x, est_pose.y);
 
         // Visualisation
         draw_world (est_pose, particles, world);
