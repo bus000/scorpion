@@ -37,7 +37,7 @@ int main() {
   cvNamedWindow (window, CV_WINDOW_AUTOSIZE);
   cvMoveWindow (window, 20, 20);
 
-  // The camera interface  
+  // The camera interface
   camera cam;
 
   // Parameters
@@ -57,7 +57,7 @@ int main() {
   // Initialize robot and position proxy.
   PlayerClient robot("192.168.240.129");
   Position2dProxy position(&robot);
-  
+
   // Initialize state.
   State state(particles, &robot, &position, &cam, world, estimate_pose(particles));
 
@@ -75,6 +75,8 @@ int main() {
     // TODO: Maybe run particle filter?
   }
 }
+
+#ifdef _THIS_IS_NOT_DEFINED_
 
 /*************************\
  *      Main program     *
@@ -105,7 +107,7 @@ int oldmain()
     // The estimate of the robots current pose
     particle est_pose = estimate_pose (particles);
 
-    // The camera interface  
+    // The camera interface
     camera cam;
 
     // Parameters
@@ -133,7 +135,7 @@ int oldmain()
         // Grab image
         IplImage *im = cam.get_colour ();
         //rgb_im = cam.get_colour ();
-       
+
         // Do landmark detection
         double measured_distance, measured_angle;
         colour_prop cp;
@@ -179,7 +181,7 @@ int oldmain()
         }  // end: if (not found_landmark)
 
         // Estimate pose
-        est_pose =  estimate_pose(particles);                   
+        est_pose =  estimate_pose(particles);
 
         // Visualisation
         draw_world (est_pose, particles, world);
@@ -197,4 +199,5 @@ theend:
 
     return 0;
 }
+#endif
 #endif
