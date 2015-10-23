@@ -22,6 +22,8 @@ enum TaskStep {
   GotoOtherSide
 };
 
+char *TaskString(TaskStep step);
+
 class State {
   public:
     vector<particle> particles;

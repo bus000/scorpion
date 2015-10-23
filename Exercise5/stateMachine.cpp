@@ -7,6 +7,8 @@ State DriveToFinishPosition(State &state);
 State DriveToOtherSide(State &state);
 
 State RunState(State &state) {
+  printf("State: %s\n", state.currentStep);
+
   switch(state.currentStep) {
     case FirstSearch:
       return TurnToFirstLandmark(state);
@@ -42,6 +44,8 @@ State TurnToFirstLandmark(State &state) {
       delete meas;
   }
   control->resetCounters();
+
+  printf("Found first landmark at (%d, %d, %d)\n", meas.position.x, meas.position.y, meas.angle);
 
   // TODO: Particle filter.
 
@@ -102,6 +106,9 @@ State TurnToSecondLandmark(State &state) {
   control->resetCounters();
   
   if (found) {
+    measurement *meas = state.lastMeas;
+    printf("Found second landmark at (%d, %d, %d)\n", meas.position.x, meas.position.y, meas.angle);
+
     // TODO: Particle filter with new landmark.
 
     state.currentStep     = GotoFinish;
@@ -147,11 +154,23 @@ State DriveToFinishPosition(State &state) {
   // TODO: Check position
 }
 
-void PrintState(State state) {
-  // TODO: finish this
-  printf("Task:\t");
-}
-
 measurement* getMeasurement(State &state) {
   return (new measurement(state.cam, state.image));
+}
+
+char *TaskString(TaskStep step) {
+  switch(step) {
+    case FirstSearch:
+      return "FirstSearch";
+    case GotoLandmark:
+      return "GotoLandmark";
+    case SecondSearch:
+      return "SecondSearch"; 
+    case GotoFinish:
+      return "GotoFinish";
+    case GotoOtherSide:
+      return "GotoOtherSide";
+    default:
+      return "Unknown state";
+  }
 }
