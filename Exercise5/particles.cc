@@ -45,7 +45,16 @@ void add_uncertainty (std::vector<particle> &particles, double sigma, double the
 void uncertain_particle(particle &p, double sigma, double theta_kappa) {
   p.x += randn (0, sigma);
   p.y += randn (0, sigma);
-  p.theta = fmod(rand_von_mises (p.theta, theta_kappa), 2.0f * M_PI) - M_PI;
+
+  // FUCK VON MISIS TIS' SOME REAL OG SHIT
+  p.theta += randn(0, theta_kappa);
+  
+  if (p.theta < -M_PI) {
+    p.theta += 2*M_PI;
+  }
+  else if (p.theta > M_PI) {
+    p.theta -= 2*M_PI;
+  }
 }
 
 void draw_world (particle &est_pose, std::vector<particle> &particles, IplImage *im)
