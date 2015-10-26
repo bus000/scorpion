@@ -105,7 +105,6 @@ IplImage* camera::get_colour ()
   IplImage *distorted = cvQueryFrame (cam);
   cvRemap (distorted, colour, mapx, mapy);
     
-    
   //  colour = cvQueryFrame (cam);
 
   return colour;
@@ -216,7 +215,7 @@ CvPoint2D32f* camera::get_corners (IplImage *im, bool &found, int &corner_count)
     }
   
   found = cvFindChessboardCorners (im, pattern_size, corners, &corner_count,
-                    CV_CALIB_CB_NORMALIZE_IMAGE | CV_CALIB_CB_ADAPTIVE_THRESH);
+                    CV_CALIB_CB_FAST_CHECK | CV_CALIB_CB_NORMALIZE_IMAGE | CV_CALIB_CB_ADAPTIVE_THRESH);
   if (found)
     cvFindCornerSubPix (im, corners, corner_count, cvSize (5, 5), cvSize (-1, -1),
                         cvTermCriteria (CV_TERMCRIT_ITER, 3, 0.0));

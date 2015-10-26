@@ -41,13 +41,12 @@ int main() {
 
   // The camera interface
   camera cam;
-  IplImage *im = cam.get_colour ();
 
   // Parameters
   const CvSize size = cvSize (480, 360);
 
   // Initialize particles
-  const int num_particles = 1000;
+  const int num_particles = 10000;
   std::vector<particle> particles;
 
   for(int i = 0; i < num_particles; i++){
@@ -62,25 +61,25 @@ int main() {
   //PlayerCc::PlayerClient robot("192.168.100.253");
   PlayerCc::Position2dProxy position(&robot);
 
-  cout << "here" << endl << flush;
-
   //Filter
   particleFilter filter(1);
 
   // Initialize state.
-  State state(&particles, &filter, &robot, &position, cam, *world);
+  State state(&particles, &filter, &robot, &position, &cam);
 
   /* -- MAIN LOOP -- */
   while (true) {
+    int action = cvWaitKey (10);
     // Run state machine.
     RunState(state);
 
     // Draw map.
     particle est_pose = estimate_pose(particles);
     draw_world (est_pose, particles, world);
+    if(state.lastMeas.landmark != NoLandmark)
+        cam.draw_object (state.image);
     cvShowImage (map, world);
-    cvShowImage (window, im);
-    cam.draw_object (im);
+    cvShowImage (window, state.image);
   }
 }
 

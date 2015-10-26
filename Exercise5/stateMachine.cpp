@@ -7,8 +7,9 @@ State DriveToFinishPosition(State &state);
 State DriveToOtherSide(State &state);
 
 State RunState(State &state) {
-  printf("State: %s\n", state.currentStep);
+  printf("State: %s\n", TaskString(state.currentStep));
 
+  state.image = state.cam->get_colour();
   state.estimatedPose = estimate_pose(*state.particles);
 
   switch(state.currentStep) {
@@ -30,35 +31,25 @@ State RunState(State &state) {
 // Step 1: Searches for the first landmark.
 State TurnToFirstLandmark(State &state) {
   DriveCtl *control = state.driveControl;
-  measurement *meas;
+  measurement meas;
 
-  // Turn the robot until a landmark is found.
-  while (true) {
-    control->resetCounters();
-    control->turnLeft(15);
+  control->resetCounters();
+  control->turnLeft(2);
 
-    //create command particle
-  
-    particle command (control->getXPos(), control->getYPos(),
-            control->toRadians(control->getYawed()));
+  //create command particle
 
-    meas = getMeasurement(state);
-    state.filter->filter(command, *meas, state.particles);
-    
-    if (meas->landmark != NoLandmark) {
+  particle command (control->getXPos(), control->getYPos(),
+          control->toRadians(control->getYawed()));
+
+  meas = getMeasurement(state);
+  state.filter->filter(command, meas, state.particles);
+
+  if (meas.landmark != NoLandmark) {
       state.lastMeas = meas;
-      break;
-    }
-    else
-      delete meas;
+      state.currentStep     = GotoLandmark;
+      state.currentLandmark = meas.landmark;
+      printf("Found first landmark at (%d, %d, %d)\n", meas.position.x, meas.position.y, meas.angle);
   }
-
-
-  printf("Found first landmark at (%d, %d, %d)\n", meas->position.x, meas->position.y, meas->angle);
-
-
-  state.currentStep     = GotoLandmark;
-  state.currentLandmark = meas->landmark;
 
   return state;
 }
@@ -67,9 +58,9 @@ State TurnToFirstLandmark(State &state) {
 State DriveToFirstLandmark(State &state) {
   DriveCtl *control = state.driveControl;
   
-  double dist = state.lastMeas->distance; 
-  double angl = state.lastMeas->angle;
-  particle pos = state.lastMeas->position;
+  double dist = state.lastMeas.distance; 
+  double angl = state.lastMeas.angle;
+  particle pos = state.lastMeas.position;
 
   double posX = cos(angl) * dist;
   double posY = sin(angl) * dist - 150;
@@ -88,8 +79,8 @@ State DriveToFirstLandmark(State &state) {
   particle command (control->getXPos(), control->getYPos(),
           control->toRadians(control->getYawed()));
 
-  measurement *meas = getMeasurement(state);
-  state.filter->filter(command, *meas, state.particles);
+  measurement meas = getMeasurement(state);
+  state.filter->filter(command, meas, state.particles);
 
   control->resetCounters();
 
@@ -109,26 +100,24 @@ State TurnToSecondLandmark(State &state) {
   while (control->getYawed() < 355) { // MAGIC NUMBER
     control->turnLeft(15);
 
-    measurement *meas = getMeasurement(state);
+    measurement meas = getMeasurement(state);
   
     //particle filter
     particle command (control->getXPos(), control->getYPos(),
             control->toRadians(control->getYawed()));
 
-    state.filter->filter(command, *meas, state.particles);
+    state.filter->filter(command, meas, state.particles);
 
-    if (meas->landmark != NoLandmark && meas->landmark != state.currentLandmark) {
+    if (meas.landmark != NoLandmark && meas.landmark != state.currentLandmark) {
       state.lastMeas = meas;
       found = true;
       break;
     }
-    else
-      delete meas;
   }
   
   if (found) {
-    measurement *meas = state.lastMeas;
-    printf("Found second landmark at (%d, %d, %d)\n", meas->position.x, meas->position.y, meas->angle);
+    measurement meas = state.lastMeas;
+    printf("Found second landmark at (%d, %d, %d)\n", meas.position.x, meas.position.y, meas.angle);
 
     control->resetCounters();
 
@@ -147,19 +136,18 @@ State TurnToSecondLandmark(State &state) {
 State DriveToOtherSide(State &state) {
   DriveCtl *control = state.driveControl;
 
-  measurement *meas = getMeasurement(state);
+  measurement meas = getMeasurement(state);
   particle command1 (control->getXPos(), control->getYPos(),
           control->toRadians(control->getYawed()));
-  state.filter->filter(command1, *meas, state.particles);
+  state.filter->filter(command1, meas, state.particles);
 
   control->resetCounters();
-  delete meas;
   control->goToPos(150, -150);
   
   meas = getMeasurement(state);
   particle command2 (control->getXPos(), control->getYPos(),
           control->toRadians(control->getYawed()));
-  state.filter->filter(command2, *meas, state.particles);
+  state.filter->filter(command2, meas, state.particles);
 
   control->resetCounters();
   
@@ -185,8 +173,8 @@ State DriveToFinishPosition(State &state) {
   // TODO: Check position
 }
 
-measurement* getMeasurement(State &state) {
-  return (new measurement(state.cam, state.image));
+measurement getMeasurement(State &state) {
+  return measurement(*state.cam, state.image);
 }
 
 char d_str1[] = "FirstSearch";

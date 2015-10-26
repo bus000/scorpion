@@ -5,7 +5,7 @@
 
 using namespace std;
 
-State RunState(State &state);
+State RunState(State state);
 
 void PrintState(State state);
 
