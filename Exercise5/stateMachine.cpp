@@ -7,6 +7,10 @@ State DriveToFinishPosition(State &state);
 State DriveToOtherSide(State &state);
 
 State RunState(State &state) {
+  printf("State: %s\n", state.currentStep);
+
+  state.estimatedPose = estimate_pose(state.particles);
+
   switch(state.currentStep) {
     case FirstSearch:
       return TurnToFirstLandmark(state);
@@ -41,9 +45,12 @@ State TurnToFirstLandmark(State &state) {
     else
       delete meas;
   }
+  // TODO: Particle filter.
+
   control->resetCounters();
 
-  // TODO: Particle filter.
+  printf("Found first landmark at (%d, %d, %d)\n", meas->position.x, meas->position.y, meas->angle);
+
 
   state.currentStep     = GotoLandmark;
   state.currentLandmark = meas->landmark;
@@ -99,15 +106,19 @@ State TurnToSecondLandmark(State &state) {
     else
       delete meas;
   }
-  control->resetCounters();
   
   if (found) {
+    measurement *meas = state.lastMeas;
+    printf("Found second landmark at (%d, %d, %d)\n", meas->position.x, meas->position.y, meas->angle);
+
     // TODO: Particle filter with new landmark.
+    control->resetCounters();
 
     state.currentStep     = GotoFinish;
     state.currentLandmark = BothLandmarks;
   }
   else {
+    control->resetCounters();
     state.currentStep = GotoOtherSide;
   }
 
@@ -147,11 +158,30 @@ State DriveToFinishPosition(State &state) {
   // TODO: Check position
 }
 
-void PrintState(State state) {
-  // TODO: finish this
-  printf("Task:\t");
-}
-
 measurement* getMeasurement(State &state) {
   return (new measurement(state.cam, state.image));
+}
+
+char d_str1[] = "FirstSearch";
+char d_str2[] = "GotoLandmark";
+char d_str3[] = "SecondSearch";
+char d_str4[] = "GotoFinish";
+char d_str5[] = "GotoOtherSide";
+char d_str6[] = "Unknown state";
+
+char *TaskString(TaskStep step) {
+  switch(step) {
+    case FirstSearch:
+        return d_str1;
+    case GotoLandmark:
+        return d_str2;
+    case SecondSearch:
+        return d_str3;
+    case GotoFinish:
+        return d_str4;
+    case GotoOtherSide:
+        return d_str5;
+    default:
+        return d_str6;
+  }
 }

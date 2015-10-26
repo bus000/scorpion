@@ -14,6 +14,8 @@
 #include "particles.h"
 #include "random_numbers.h"
 #include "particleFilter.hpp"
+#include "state.hpp"
+#include "stateMachine.hpp"
 
 /*
  * Keyboard constants
@@ -28,10 +30,63 @@
  */
 #define NUM_THREADS 8
 
+int main() {
+  // The GUI
+  const char *map = "World map";
+  const char *window = "Robot View";
+  IplImage *world = cvCreateImage (cvSize (500,500), IPL_DEPTH_8U, 3);
+  cvNamedWindow (map, CV_WINDOW_AUTOSIZE);
+  cvNamedWindow (window, CV_WINDOW_AUTOSIZE);
+  cvMoveWindow (window, 20, 20);
+
+  // The camera interface
+  camera cam;
+  IplImage *im = cam.get_colour ();
+
+  // Parameters
+  const CvSize size = cvSize (480, 360);
+
+  // Initialize particles
+  const int num_particles = 1000;
+  std::vector<particle> particles;
+
+  for(int i = 0; i < num_particles; i++){
+      particle tmp_p(2000.0*randf() - 1000, 2000.0*randf() - 1000);
+      tmp_p.theta = 360.0 * randf();
+      tmp_p.weight = 1.0/(double)num_particles;
+      particles.push_back(tmp_p);
+  }
+
+  // Initialize robot and position proxy.
+  PlayerCc::PlayerClient robot("192.168.240.129");
+  PlayerCc::Position2dProxy position(&robot);
+
+  // Initialize state.
+  State state(particles, &robot, &position, cam, *world);
+
+  /* -- MAIN LOOP -- */
+  while (true) {
+    // Run state machine.
+    RunState(state);
+
+    // Draw map.
+    particle est_pose = estimate_pose(particles);
+    draw_world (est_pose, particles, world);
+    cvShowImage (map, world);
+    cvShowImage (window, im);
+    cam.draw_object (im);
+
+    // TODO: Maybe run particle filter?
+  }
+}
+
+#ifdef _THIS_IS_NOT_DEFINED_
+
 /*************************\
  *      Main program     *
  \*************************/
-int main() 
+#if 0
+int oldmain()
 {
     // The GUI
     const char *map = "World map";
@@ -56,7 +111,7 @@ int main()
     // The estimate of the robots current pose
     particle est_pose = estimate_pose (particles);
 
-    // The camera interface  
+    // The camera interface
     camera cam;
 
     // Parameters
@@ -84,7 +139,7 @@ int main()
         // Grab image
         IplImage *im = cam.get_colour ();
         //rgb_im = cam.get_colour ();
-       
+
         // Do landmark detection
         double measured_distance, measured_angle;
         colour_prop cp;
@@ -148,8 +203,14 @@ int main()
         }  // end: if (not found_landmark)
 
         // Estimate pose
+<<<<<<< HEAD
         est_pose =  estimate_pose(particles);                   
         printf("robot: (%f, %f)\n", est_pose.x, est_pose.y);
+||||||| merged common ancestors
+        est_pose =  estimate_pose(particles);                   
+=======
+        est_pose =  estimate_pose(particles);
+>>>>>>> 9e8b90cb363eacadc57b133e089a928dfcdf0d9d
 
         // Visualisation
         draw_world (est_pose, particles, world);
@@ -167,3 +228,5 @@ theend:
 
     return 0;
 }
+#endif
+#endif

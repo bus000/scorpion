@@ -22,6 +22,8 @@ enum TaskStep {
   GotoOtherSide
 };
 
+char *TaskString(TaskStep step);
+
 class State {
   public:
     vector<particle> particles;
@@ -38,14 +40,14 @@ class State {
          , PlayerCc::PlayerClient *robot
          , PlayerCc::Position2dProxy *position
          , camera &cam
-         , IplImage &im
-         , particle landmarkPosition)
+         , IplImage &im)
     {
       this->particles = particles;
       this->currentStep = FirstSearch;
       this->currentLandmark = NoLandmark;
       this->driveControl = new DriveCtl(robot, position);
       this->estimatedPose = estimate_pose(this->particles);
+      this->lastMeas = NULL;
     }
 
     ~State() {
