@@ -29,6 +29,7 @@ public:
     void resetDriven();
     double getYawed();
     double getDriven();
+    double toRadians(double degrees);
 
 private:
     PlayerCc::PlayerClient *robot;
@@ -36,7 +37,6 @@ private:
     double direction;
     double speed;
     double turnSpeed;
-    double toRadians(double degrees);
     double toDegrees(double radians);
     double xPos, yPos, yaw;
     double yawed, driven;

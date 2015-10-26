@@ -8,8 +8,6 @@ measurement::measurement(camera &cam, IplImage &im)
 
     object::type ID = cam.get_object(&im, cp, this->distance, tmp_angle);
 
-    this->angle = (180 / M_PI) * tmp_angle;
-
     if (ID == object::none) {
         this->landmark = NoLandmark;
     } else {

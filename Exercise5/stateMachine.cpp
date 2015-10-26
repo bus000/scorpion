@@ -9,7 +9,7 @@ State DriveToOtherSide(State &state);
 State RunState(State &state) {
   printf("State: %s\n", state.currentStep);
 
-  state.estimatedPose = estimate_pose(state.particles);
+  state.estimatedPose = estimate_pose(*state.particles);
 
   switch(state.currentStep) {
     case FirstSearch:
@@ -34,10 +34,17 @@ State TurnToFirstLandmark(State &state) {
 
   // Turn the robot until a landmark is found.
   while (true) {
+    control->resetCounters();
     control->turnLeft(15);
 
-    meas = getMeasurement(state);
+    //create command particle
+  
+    particle command (control->getXPos(), control->getYPos(),
+            control->toRadians(control->getYawed()));
 
+    meas = getMeasurement(state);
+    state.filter->filter(command, *meas, state.particles);
+    
     if (meas->landmark != NoLandmark) {
       state.lastMeas = meas;
       break;
@@ -45,9 +52,7 @@ State TurnToFirstLandmark(State &state) {
     else
       delete meas;
   }
-  // TODO: Particle filter.
 
-  control->resetCounters();
 
   printf("Found first landmark at (%d, %d, %d)\n", meas->position.x, meas->position.y, meas->angle);
 
@@ -66,7 +71,6 @@ State DriveToFirstLandmark(State &state) {
   double angl = state.lastMeas->angle;
   particle pos = state.lastMeas->position;
 
-  // TODO: RADS
   double posX = cos(angl) * dist;
   double posY = sin(angl) * dist - 150;
 
@@ -78,6 +82,15 @@ State DriveToFirstLandmark(State &state) {
   control->resetCounters();
   control->goToPos(posX, posY);
   control->turn(recoverAngl);
+
+  
+  //particle filter
+  particle command (control->getXPos(), control->getYPos(),
+          control->toRadians(control->getYawed()));
+
+  measurement *meas = getMeasurement(state);
+  state.filter->filter(command, *meas, state.particles);
+
   control->resetCounters();
 
   state.currentStep = SecondSearch;
@@ -91,12 +104,18 @@ State TurnToSecondLandmark(State &state) {
 
   bool found = false;
 
-  // TODO: Turn the robot until a new landmark is found
+  //Turn the robot until a new landmark is found
   control->resetCounters();
   while (control->getYawed() < 355) { // MAGIC NUMBER
     control->turnLeft(15);
 
     measurement *meas = getMeasurement(state);
+  
+    //particle filter
+    particle command (control->getXPos(), control->getYPos(),
+            control->toRadians(control->getYawed()));
+
+    state.filter->filter(command, *meas, state.particles);
 
     if (meas->landmark != NoLandmark && meas->landmark != state.currentLandmark) {
       state.lastMeas = meas;
@@ -111,7 +130,6 @@ State TurnToSecondLandmark(State &state) {
     measurement *meas = state.lastMeas;
     printf("Found second landmark at (%d, %d, %d)\n", meas->position.x, meas->position.y, meas->angle);
 
-    // TODO: Particle filter with new landmark.
     control->resetCounters();
 
     state.currentStep     = GotoFinish;
@@ -129,15 +147,24 @@ State TurnToSecondLandmark(State &state) {
 State DriveToOtherSide(State &state) {
   DriveCtl *control = state.driveControl;
 
+  measurement *meas = getMeasurement(state);
+  particle command1 (control->getXPos(), control->getYPos(),
+          control->toRadians(control->getYawed()));
+  state.filter->filter(command1, *meas, state.particles);
+
   control->resetCounters();
-  control->goToPos(150, 150);
-  control->turnLeft(control->getYawed());
-  control->resetCounters();
+  delete meas;
   control->goToPos(150, -150);
+  
+  meas = getMeasurement(state);
+  particle command2 (control->getXPos(), control->getYPos(),
+          control->toRadians(control->getYawed()));
+  state.filter->filter(command2, *meas, state.particles);
+
   control->resetCounters();
   
   // Maybe we should go to SecondSearch?
-  state.currentStep = GotoFinish;
+  state.currentStep = FirstSearch;
 
   return state;
 }
@@ -145,7 +172,7 @@ State DriveToOtherSide(State &state) {
 State DriveToFinishPosition(State &state) {
   DriveCtl *control = state.driveControl;
 
-  particle pose = estimate_pose(state.particles);
+  particle pose = estimate_pose(*state.particles);
 
   control->setXPos(pose.x);
   control->setYPos(pose.y);

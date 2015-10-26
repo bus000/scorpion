@@ -58,11 +58,17 @@ int main() {
   }
 
   // Initialize robot and position proxy.
-  PlayerCc::PlayerClient robot("192.168.240.129");
+  PlayerCc::PlayerClient robot("localhost");
+  //PlayerCc::PlayerClient robot("192.168.100.253");
   PlayerCc::Position2dProxy position(&robot);
 
+  cout << "here" << endl << flush;
+
+  //Filter
+  particleFilter filter(1);
+
   // Initialize state.
-  State state(particles, &robot, &position, cam, *world);
+  State state(&particles, &filter, &robot, &position, cam, *world);
 
   /* -- MAIN LOOP -- */
   while (true) {
@@ -75,8 +81,6 @@ int main() {
     cvShowImage (map, world);
     cvShowImage (window, im);
     cam.draw_object (im);
-
-    // TODO: Maybe run particle filter?
   }
 }
 

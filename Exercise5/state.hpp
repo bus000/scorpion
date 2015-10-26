@@ -11,6 +11,7 @@
 #include "DriveCtl.hpp"
 #include "math.h"
 #include <libplayerc++/playerc++.h>
+#include "particleFilter.hpp"
 
 using namespace std;
 
@@ -26,17 +27,19 @@ char *TaskString(TaskStep step);
 
 class State {
   public:
-    vector<particle> particles;
+    vector<particle> *particles;
     particle estimatedPose;
     TaskStep currentStep;
     measurement *lastMeas;
     ObservedLandmark currentLandmark;
     DriveCtl *driveControl;
+    particleFilter *filter;
     camera cam;
     IplImage image;
     
 
-    State( vector<particle> particles
+    State( vector<particle> *particles
+         , particleFilter *filter
          , PlayerCc::PlayerClient *robot
          , PlayerCc::Position2dProxy *position
          , camera &cam
@@ -46,8 +49,9 @@ class State {
       this->currentStep = FirstSearch;
       this->currentLandmark = NoLandmark;
       this->driveControl = new DriveCtl(robot, position);
-      this->estimatedPose = estimate_pose(this->particles);
+      this->estimatedPose = estimate_pose(*this->particles);
       this->lastMeas = NULL;
+      this->filter = filter;
     }
 
     ~State() {
