@@ -107,29 +107,27 @@ void particleFilter::angleObservationModel(thread_data_t * data_p){
     double stdVariance;
 
     //calculate angle between particle p and the obervation
+    static bool t = true;
     for(int i = 0; i < data_p->length; i++){
         double P[2] = {
             cos(data_p->particles[i].theta),
             sin(data_p->particles[i].theta)
         };
         double L[2] = {
-            mutualData->meas->position.x - P[0],
-            mutualData->meas->position.y - P[1]
+            mutualData->meas->position.x - data_p->particles[i].x,
+            mutualData->meas->position.y - data_p->particles[i].y
         };
-        double dotProd = P[0]*L[0]+P[1]*L[1];
         double Llength = sqrt(pow(L[0],2)+pow(L[1],2));
-        double tmp = dotProd/Llength;
-        if(tmp < -1.0) tmp = -1.0;
-        if(tmp > 1.0) tmp = 1.0;
-        double pAngle = acos(tmp);
-
-        if(pAngle > M_PI)
-            pAngle -= 2*M_PI;
+        double dotProd = P[0]*L[0]+P[1]*L[1];
+        double det = P[0]*L[1]-P[1]*L[0];
+        double pAngle = atan2(det, dotProd);
+           pAngle -= 2*M_PI;
         
         angles.push_back(pAngle);
         ownAngleSum += pAngle;
     }
 
+        t = false;
     //Sum the angles for all threads
     pthread_mutex_lock(&mutualData->lock_mean);
     mutualData->angleSum += ownAngleSum;
@@ -162,6 +160,9 @@ void particleFilter::angleObservationModel(thread_data_t * data_p){
         data_p->particles[i].weight *=
             particleFilter::GaussianDist(mutualData->meas->angle,
                     stdVariance, angles[i]);
+        //cout << 
+        //    particleFilter::GaussianDist(mutualData->meas->angle,
+        //            stdVariance, angles[i]) << endl;
     }
 }
 
