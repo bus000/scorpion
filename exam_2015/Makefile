@@ -5,19 +5,25 @@
 # Compile and link flags
 CXX         =  g++
 CXXFLAGS    = -g
-OPENCVFLAGS = `pkg-config opencv playerc++ --cflags`
+OPENCVFLAGS = `pkg-config opencv --cflags`
+OPENCVLIBS  = `pkg-config opencv --libs`
+
+PLAYERFLAGS = `pkg-config playerc++ --cflags`
+PLAYERLIBS  = `pkg-config playerc++ --libs`
 CXXFLAGS    = $(OPENCVFLAGS)
-OPENCVLIBS  = `pkg-config opencv playerc++ --libs`
 
 # Main executable
 MainExec = robot_runner
 
 # Files
-SOURCES = $(wildcard *.cpp)
+SOURCES = $(wildcard src/*.cpp)
 OBJECTS := $(patsubst %.cpp, %.o, $(SOURCES))
 
 ## Compile everything ##
 all: $(MainExec)
+
+camera-test: $(BIN)
+	$(CXX) $(OPENCVLIBS) -I src/ src/camera.cpp test/camera-test.cpp -o bin/camera-test
 
 # Linking
 $(MainExec): $(OBJECTS)
@@ -26,6 +32,9 @@ $(MainExec): $(OBJECTS)
 # Compilation.
 $(OBJECTS) : $(SOURCES)
 	$(CXX) $(CXXFLAGS) -c $^ 
+
+$(BIN):
+	mkdir bin
 
 # Cleaning up
 clean :

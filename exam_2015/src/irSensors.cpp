@@ -1,4 +1,4 @@
-#include "IR_Sensors.hpp"
+#include "irSensors.hpp"
 #include "particles.hpp"
 #include <vector>
 #include <libplayerc++/playerc++.h>
