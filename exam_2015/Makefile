@@ -3,30 +3,28 @@
 
 
 # Compile and link flags
-CXX         =  g++ -g -g
-CXXFLAGS    =
+CXX         =  g++
+CXXFLAGS    = -g
 OPENCVFLAGS = `pkg-config opencv playerc++ --cflags`
 CXXFLAGS    = $(OPENCVFLAGS)
 OPENCVLIBS  = `pkg-config opencv playerc++ --libs`
 
 # Main executable
-EXECUTABLE = exercise5
+MainExec = robot_runner
 
 # Files
-SOURCES = particles.cc random_numbers.cc camera.cc particleFilter.cpp DriveCtl.cpp stateMachine.cpp measurement.cpp util.cpp
-CCFILES = $(EXECUTABLE).cc $(SOURCES)
-OBJECTS = $(patsubst %.cc, %.o, $(CCFILES))
+SOURCES = $(wildcard *.cpp)
 OBJECTS := $(patsubst %.cpp, %.o, $(OBJECTS))
 
 ## Compile everything ##
 all: $(EXECUTABLE)
 
 # Linking
-$(EXECUTABLE): $(OBJECTS)
-	$(CXX) $(OPENCVLIBS) -lpthread $(OBJECTS) -o $(EXECUTABLE)
+$(MainExec): $(OBJECTS)
+	$(CXX) $(OPENCVLIBS) $(OBJECTS) -o $(MainExec)
 
 # Compilation.
-%.o : %.cc %.cpp
+$(OBJECTS) : $(SOURCE)
 	$(CXX) $(CXXFLAGS) -c $^ 
 
 # Cleaning up
