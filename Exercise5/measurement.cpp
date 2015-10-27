@@ -14,10 +14,10 @@ measurement::measurement(camera &cam, IplImage *im)
 
         switch (this->landmark) {
         case RedLandmark:
-            this->position = particle(0, 300);
+            this->position = particle(0, 0);
             break;
         case GreenLandmark:
-            this->position = particle(0,0);
+            this->position = particle(300.0,0);
             break;
         default:
             fprintf(stderr, "error: unknown landmark observed\n");

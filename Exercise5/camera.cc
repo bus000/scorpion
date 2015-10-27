@@ -34,6 +34,7 @@ camera::camera (const int idx)
   cam = cvCreateCameraCapture (idx);
   cvSetCaptureProperty (cam, CV_CAP_PROP_FRAME_WIDTH, imsize.width);
   cvSetCaptureProperty (cam, CV_CAP_PROP_FRAME_HEIGHT, imsize.height);
+  cvSetCaptureProperty (cam, CV_CAP_PROP_BUFFERSIZE, 1);
   
   // Camera parameters from the caibration of the Scorpion camera
   //intrinsic_matrix = cvCreateMat(3, 3, CV_64FC1);
@@ -71,6 +72,24 @@ camera::camera (const int idx)
   CV_MAT_ELEM(*distortion_coeffs, double, 0, 2) = -0.01171;
   CV_MAT_ELEM(*distortion_coeffs, double, 0, 3) =  0.01984;
   
+  //intrinsic_matrix = cvCreateMat(3, 3, CV_64FC1);
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 0, 1) = 0;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 1, 0) = 0;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 2, 0) = 0;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 2, 1) = 0;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 2, 2) = 1;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 0, 0) = 2.8918630320531461e+03;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 0, 2) = 3.2456064767591175e+02;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 1, 1) = 2.7455181523223296e+03;
+  //CV_MAT_ELEM(*intrinsic_matrix, double, 1, 2) = 2.2906747513649387e+02;
+
+  //distortion_coeffs = cvCreateMat(1, 5, CV_64FC1);
+  //CV_MAT_ELEM(*distortion_coeffs, double, 0, 0) = 2.9919116691704621e+00;
+  //CV_MAT_ELEM(*distortion_coeffs, double, 0, 1) =  -5.7048304919759039e+02;
+  //CV_MAT_ELEM(*distortion_coeffs, double, 0, 2) = 1.0641693855131852e-01;
+  //CV_MAT_ELEM(*distortion_coeffs, double, 0, 3) =  -1.9703767506013395e-02;
+  //CV_MAT_ELEM(*distortion_coeffs, double, 0, 4) =  2.0021692050868256e+04;
+
   // Initialise undistortion map
   mapx = cvCreateMat (imsize.height, imsize.width, CV_32FC1);
   mapy = cvCreateMat (imsize.height, imsize.width, CV_32FC1);
@@ -105,7 +124,7 @@ IplImage* camera::get_colour ()
   IplImage *distorted = cvQueryFrame (cam);
   cvRemap (distorted, colour, mapx, mapy);
     
-  //  colour = cvQueryFrame (cam);
+  //colour = cvQueryFrame (cam);
 
   return colour;
 }
@@ -215,7 +234,7 @@ CvPoint2D32f* camera::get_corners (IplImage *im, bool &found, int &corner_count)
     }
   
   found = cvFindChessboardCorners (im, pattern_size, corners, &corner_count,
-                    CV_CALIB_CB_FAST_CHECK | CV_CALIB_CB_NORMALIZE_IMAGE | CV_CALIB_CB_ADAPTIVE_THRESH);
+                    CV_CALIB_CB_NORMALIZE_IMAGE | CV_CALIB_CB_ADAPTIVE_THRESH);
   if (found)
     cvFindCornerSubPix (im, corners, corner_count, cvSize (5, 5), cvSize (-1, -1),
                         cvTermCriteria (CV_TERMCRIT_ITER, 3, 0.0));

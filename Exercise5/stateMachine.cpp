@@ -1,202 +1,96 @@
 #include "stateMachine.hpp"
+#include <iostream>
 
-State TurnToFirstLandmark(State &state);
-State DriveToFirstLandmark(State &state);
-State TurnToSecondLandmark(State &state);
-State DriveToFinishPosition(State &state);
-State DriveToOtherSide(State &state);
-
-State RunState(State &state) {
-  printf("State: %s\n", TaskString(state.currentStep));
-
-  state.image = state.cam->get_colour();
-  state.estimatedPose = estimate_pose(*state.particles);
-
-  switch(state.currentStep) {
-    case FirstSearch:
-      return TurnToFirstLandmark(state);
-    case GotoLandmark:
-      return DriveToFirstLandmark(state);
-    case SecondSearch:
-      return TurnToSecondLandmark(state);
-    case GotoFinish:
-      return DriveToFinishPosition(state);
-    case GotoOtherSide:
-      return DriveToOtherSide(state);
-    default:
-      return state;
-  }
+StateMachine::StateMachine(DriveCtl *driveCtl, vector<particle> *particles) {
+    this->driveCtl = driveCtl;
+    this->particles = particles;
+    this->foundRed = false;
+    this->foundGreen = false;
+    this->initialTotalYawed = 0;
+    this->currentState = STATE_INITIAL;
+    this->filter = new particleFilter(1);
 }
 
-// Step 1: Searches for the first landmark.
-State TurnToFirstLandmark(State &state) {
-  DriveCtl *control = state.driveControl;
-  measurement meas;
-
-  control->resetCounters();
-  control->turnLeft(2);
-
-  //create command particle
-
-  particle command (control->getXPos(), control->getYPos(),
-          control->toRadians(control->getYawed()));
-
-  meas = getMeasurement(state);
-  state.filter->filter(command, meas, state.particles);
-
-  if (meas.landmark != NoLandmark) {
-      state.lastMeas = meas;
-      state.currentStep     = GotoLandmark;
-      state.currentLandmark = meas.landmark;
-      printf("Found first landmark at (%d, %d, %d)\n", meas.position.x, meas.position.y, meas.angle);
-  }
-
-  return state;
+StateMachine::~StateMachine(){
+    delete this->filter;
 }
 
-// Step 2: Positions the robot at a right angle 150 cm from the landmark.
-State DriveToFirstLandmark(State &state) {
-  DriveCtl *control = state.driveControl;
-  
-  double dist = state.lastMeas.distance; 
-  double angl = state.lastMeas.angle;
-  particle pos = state.lastMeas.position;
-
-  double posX = cos(angl) * dist;
-  double posY = sin(angl) * dist - 150;
-
-  double dot = pos.x * posX + pos.y + posY; 
-  double det = pos.x * posY - pos.y + posX; 
-  double recoverAngl = atan2(det, dot);
-
-  // Drive to landmark position.
-  control->resetCounters();
-  control->goToPos(posX, posY);
-  control->turn(recoverAngl);
-
-  
-  //particle filter
-  particle command (control->getXPos(), control->getYPos(),
-          control->toRadians(control->getYawed()));
-
-  measurement meas = getMeasurement(state);
-  state.filter->filter(command, meas, state.particles);
-
-  control->resetCounters();
-
-  state.currentStep = SecondSearch;
-  
-  return state;  
-}
-
-// Step 3: Searches for the second landmark.
-State TurnToSecondLandmark(State &state) {
-  DriveCtl *control = state.driveControl;
-
-  bool found = false;
-
-  //Turn the robot until a new landmark is found
-  control->resetCounters();
-  while (control->getYawed() < 355) { // MAGIC NUMBER
-    control->turnLeft(15);
-
-    measurement meas = getMeasurement(state);
-  
-    //particle filter
-    particle command (control->getXPos(), control->getYPos(),
-            control->toRadians(control->getYawed()));
-
-    state.filter->filter(command, meas, state.particles);
-
-    if (meas.landmark != NoLandmark && meas.landmark != state.currentLandmark) {
-      state.lastMeas = meas;
-      found = true;
-      break;
+void StateMachine::run(vector<measurement> meas) {
+    switch(this->currentState) {
+        case STATE_INITIAL:
+            this->currentState = this->run_initial(meas);
+            break;
+        case STATE_FOUND_BOTH:
+            this->currentState = this->run_found_both(meas);
+            break;
     }
-  }
-  
-  if (found) {
-    measurement meas = state.lastMeas;
-    printf("Found second landmark at (%d, %d, %d)\n", meas.position.x, meas.position.y, meas.angle);
-
-    control->resetCounters();
-
-    state.currentStep     = GotoFinish;
-    state.currentLandmark = BothLandmarks;
-  }
-  else {
-    control->resetCounters();
-    state.currentStep = GotoOtherSide;
-  }
-
-  return state;
 }
 
-// Step 3.1: Drives to the other side of the current landmark.
-State DriveToOtherSide(State &state) {
-  DriveCtl *control = state.driveControl;
-
-  measurement meas = getMeasurement(state);
-  particle command1 (control->getXPos(), control->getYPos(),
-          control->toRadians(control->getYawed()));
-  state.filter->filter(command1, meas, state.particles);
-
-  control->resetCounters();
-  control->goToPos(150, -150);
-  
-  meas = getMeasurement(state);
-  particle command2 (control->getXPos(), control->getYPos(),
-          control->toRadians(control->getYawed()));
-  state.filter->filter(command2, meas, state.particles);
-
-  control->resetCounters();
-  
-  // Maybe we should go to SecondSearch?
-  state.currentStep = FirstSearch;
-
-  return state;
+void StateMachine::updateParticleFilter(measurement meas) {
+    double yaw = driveCtl->toRadians(driveCtl->getYaw());
+    if(yaw > M_PI)
+        yaw -= 2.0*M_PI;
+    particle command(driveCtl->getXPos(), driveCtl->getYPos(), yaw*-1);
+    this->filter->filter(command, meas, this->particles);
+    this->driveCtl->setXPos(0.0);
+    this->driveCtl->setYPos(0.0);
+    this->driveCtl->setYaw(0.0);
+    this->driveCtl->resetCounters();
 }
 
-State DriveToFinishPosition(State &state) {
-  DriveCtl *control = state.driveControl;
+state_t StateMachine::run_initial(vector<measurement> meas) {
+    for(int i = 0; i < meas.size(); i++){
+        this->updateParticleFilter(meas[i]);
+        switch(meas[i].landmark) {
+            case NoLandmark:
+                break;
+            case RedLandmark:
+                this->foundRed = true;
+                break;
+            case GreenLandmark:
+                this->foundGreen = true;
+                break;
+            default:
+                cout << "run initial error" << endl << flush;
+        }
+    }
 
-  particle pose = estimate_pose(*state.particles);
+    if(this->foundRed && this->foundGreen){
+        this->initialTotalYawed = 0;
+        return STATE_FOUND_BOTH;
+    }else if(this->initialTotalYawed > 2.0*M_PI){
+        this->initialTotalYawed = 0;
+        return STATE_PANIC;
+    }
 
-  control->setXPos(pose.x);
-  control->setYPos(pose.y);
-  control->setYaw(pose.theta);
+    //this is in degrees (sorry)
+    this->driveCtl->turn(5);
+    this->initialTotalYawed += driveCtl->toRadians(driveCtl->getYawed());
 
-  control->goToPos(0, 150);
-  control->resetCounters();
-
-  // DONE
-  // TODO: Check position
+    return STATE_INITIAL;
 }
 
-measurement getMeasurement(State &state) {
-  return measurement(*state.cam, state.image);
-}
+state_t StateMachine::run_found_both(vector<measurement> meas) {
+    for(int i = 0; i < meas.size()*3; i++)
+        this->updateParticleFilter(meas[i%meas.size()]);
 
-char d_str1[] = "FirstSearch";
-char d_str2[] = "GotoLandmark";
-char d_str3[] = "SecondSearch";
-char d_str4[] = "GotoFinish";
-char d_str5[] = "GotoOtherSide";
-char d_str6[] = "Unknown state";
+    particle est_pose = estimate_pose(*this->particles);
 
-char *TaskString(TaskStep step) {
-  switch(step) {
-    case FirstSearch:
-        return d_str1;
-    case GotoLandmark:
-        return d_str2;
-    case SecondSearch:
-        return d_str3;
-    case GotoFinish:
-        return d_str4;
-    case GotoOtherSide:
-        return d_str5;
-    default:
-        return d_str6;
-  }
+    if(est_pose.theta < 0.0)
+        est_pose.theta += 2.0*M_PI;
+
+    //cout << "we are here: (" << est_pose.
+    this->driveCtl->setYaw(this->driveCtl->toDegrees(est_pose.theta));
+    this->driveCtl->setXPos(est_pose.x);
+    this->driveCtl->setYPos(est_pose.y);
+    this->driveCtl->goToPos(150.0, 0);
+    //double tx = (150.0-est_pose.x)*0.8;
+    //double ty = est_pose.y*0.8;
+
+    //this->driveCtl->goToPos(tx, ty);
+
+    this->foundRed = false;
+    this->foundGreen = false;
+    this->initialTotalYawed = 0.0;
+    return STATE_INITIAL;
 }

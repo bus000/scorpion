@@ -62,7 +62,7 @@ void DriveCtl::turn(double degrees){
     this->position->SetSpeed(0.0, 0.0);
 
     //update yaw
-    this->yaw += degrees*turnDirection;
+    this->yaw += degrees*turnDirection*-1;
     this->overRunYaw();
     //update yawed
     this->yawed += std::abs(degrees);
@@ -121,26 +121,75 @@ void DriveCtl::overRunYaw(){
     }
 }
 
-void DriveCtl::goToPos(double x, double y){
-    x = x - this->xPos;
-    y = y - this->yPos;
+void DriveCtl::goToPos(double xTo, double yTo){
+    double theta = this->toRadians(this->getYaw());
+    double yDiff = xTo - this->xPos;
+    double xDiff = yTo - this->yPos;
 
-    double vecLength = sqrt(pow(x,2)+pow(y,2));
-    double gotoAngle = this->toDegrees(acos(x/vecLength));
-    double angle = gotoAngle;
-    std::cout << "angle: " << angle << std::endl;
-    std::cout << "vecLength: " << vecLength << std::endl;
+    double thetaDiff = atan2(yDiff, xDiff);
 
-    if(y < 0.0)
-        angle = 360.0 - angle;
+    double cs = cos(theta);
+    double sn = sin(theta);
 
-    std::cout << "noget: " << angle << std::endl;
+    double xRot = xDiff * cs - yDiff * sn;
+    double yRot = xDiff * sn + yDiff * cs;
 
-    if(angle > 180.0)
-        this->turnRight(360.0-angle);
-    else
-        this->turnLeft(angle);
+    double finTheta = 0.5 * M_PI - atan2(yRot, xRot);
+    if (finTheta < 0) finTheta += 2*M_PI;
 
+    if (finTheta > M_PI){
+        finTheta = 2*M_PI - finTheta;
+        printf("Turning left %f degrees\n", finTheta * 57.2958);
+        turnLeft(this->toDegrees(finTheta));
+    } 
+    else {
+        printf("Turning right %f degrees\n", finTheta * 57.2958);
+        turnRight(this->toDegrees(finTheta));
+    }
+
+    double dist = sqrt(pow(xRot, 2.0) + pow(yRot, 2.0));
     this->setDirection(DRIVE_FORWARD);
-    this->drive(vecLength);
+    this->drive(dist);
+
+    printf("Driving %f cm\n", dist);
+    printf("posX: %f\nPosY: %f\nYaw: %f\n", this->xPos, this->yPos, this->yaw);
 }
+
+//void DriveCtl::goToPos(double x, double y) {
+//    x = x - this->xPos;
+//    y = y - this->yPos;
+//
+//    double angleD = atan2(y, x);
+//    if(angleD < 0.0)
+//        angleD += 2.0*M_PI;
+//    double angleR = this->toRadians(this->yaw);
+//    double angleT = angleR - angleD;
+//    double vecLength = sqrt(pow(x,2)+pow(y,2));
+//
+//    angleT = this->toDegrees(angleT);
+//    this->turn(angleT);
+//
+//    this->setDirection(DRIVE_FORWARD);
+//    this->drive(vecLength);
+//}
+
+//void DriveCtl::goToPos(double x, double y) {
+//    x = x - this->xPos;
+//    y = y - this->yPos;
+//
+//    double tAngle = atan2(y, x) - atan2(sin(this->toRadians(this->yaw)),
+//            cos(this->toRadians(this->yaw)));
+//    if(tAngle < 0.0)
+//        tAngle += 2.0*M_PI;
+//    tAngle = this->toDegrees(tAngle);
+//
+//    if(tAngle > 180.0)
+//        this->turnLeft(360.0-tAngle);
+//    else
+//        this->turnRight(tAngle);
+//    
+//    std::cout << "drive angle: " << tAngle << std::endl;
+//    double vecLength = sqrt(pow(x,2)+pow(y,2));
+//    this->setDirection(DRIVE_FORWARD);
+//    this->drive(vecLength);
+//}
