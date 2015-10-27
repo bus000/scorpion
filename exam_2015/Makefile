@@ -13,9 +13,7 @@ OPENCVLIBS  = `pkg-config opencv playerc++ --libs`
 EXECUTABLE = exercise5
 
 # Files
-SOURCES = particles.cc random_numbers.cc camera.cc particleFilter.cpp DriveCtl.cpp stateMachine.cpp measurement.cpp util.cpp
-CCFILES = $(EXECUTABLE).cc $(SOURCES)
-OBJECTS = $(patsubst %.cc, %.o, $(CCFILES))
+SOURCES =$(wildcard *.cpp)$
 OBJECTS := $(patsubst %.cpp, %.o, $(OBJECTS))
 
 ## Compile everything ##
@@ -27,7 +25,7 @@ $(EXECUTABLE): $(OBJECTS)
 
 # Compilation.
 %.o : %.cc %.cpp
-	$(CXX) $(CXXFLAGS) -c $^ 
+	$(CXX) $(CXXFLAGS) -c $^
 
 # Cleaning up
 clean :
