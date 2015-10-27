@@ -33,6 +33,8 @@ public:
      * particle returned. */
     vector<particle> getObstacles(void);
 
+    vector<particle> getObstaclePosition(particle robotPos);
+
 private:
     unsigned int filterStrength;
     PlayerCc::PlayerClient *robot;
