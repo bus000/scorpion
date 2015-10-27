@@ -104,7 +104,7 @@ int main() {
   const CvSize size = cvSize (480, 360);
 
   // Initialize particles
-  const int num_particles = 10000;
+  const int num_particles = 30000;
   std::vector<particle> particles;
 
   for(int i = 0; i < num_particles; i++){

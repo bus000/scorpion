@@ -42,7 +42,7 @@ void StateMachine::updateParticleFilter(measurement meas) {
     double yaw = driveCtl->toRadians(driveCtl->getYaw());
     if(yaw > M_PI)
         yaw -= 2.0*M_PI;
-    particle command(this->deltaX, this->deltaY, -1.0*this->deltaTheta);
+    particle command(this->deltaX, this->deltaY, this->deltaTheta);
     this->filter->filter(command, meas, this->particles);
     this->deltaTheta = 0;
     this->deltaX = 0;
