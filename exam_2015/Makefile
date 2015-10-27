@@ -13,7 +13,7 @@ OPENCVLIBS  = `pkg-config opencv playerc++ --libs`
 MainExec = robot_runner
 
 # Files
-SOURCES = $(wildcard *.cpp)
+SOURCES = $(wildcard src/*.cpp)
 OBJECTS := $(patsubst %.cpp, %.o, $(SOURCES))
 
 ## Compile everything ##
