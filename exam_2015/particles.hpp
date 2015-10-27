@@ -1,5 +1,5 @@
-#ifndef PARTICLES_H
-#define PARTICLES_H
+#ifndef PARTICLES_HPP
+#define PARTICLES_HPP
 
 #include <vector>
 #include <opencv2/core/core.hpp>
@@ -11,10 +11,6 @@
 #include <stdio.h>
 #include <iostream>
 #include <cmath>
-
-#include "camera.h"
-#include "particles.h"
-#include "random_numbers.h"
 
 /*
  * Some colors

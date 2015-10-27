@@ -2,6 +2,10 @@
 #define IR_SENSORS_HPP
 
 #include <libplayerc++/playerc++.h>
+#include <vector>
+#include "particles.hpp"
+
+using namespace std;
 
 #define DEFAULT_FILTERSTRENGTH (10)
 
@@ -24,7 +28,7 @@
 class IRSensors {
 public:
     IRSensors(PlayerCc::PlayerClient *robot);
-    IRSensors(PlayerCc::PlayerClient *robot, unsigned int filterStrength)
+    IRSensors(PlayerCc::PlayerClient *robot, unsigned int filterStrength);
     ~IRSensors(void);
 
     /* Returns a list of particles in the directions obstacles are discovered.
@@ -38,7 +42,7 @@ public:
 private:
     unsigned int filterStrength;
     PlayerCc::PlayerClient *robot;
-    PlayerCc::PlayerClient *irProxy;
+    PlayerCc::IrProxy *irProxy;
 };
 
 #endif

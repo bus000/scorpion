@@ -1,6 +1,5 @@
 #include <vector>
-#include "particles.h"
-#include "random_numbers.h"
+#include "particles.hpp"
 #include <math.h>
 #include <iostream>
 
@@ -33,29 +32,29 @@ void move_particle (particle &p, double delta_x, double delta_y, double delta_th
     p.theta += delta_theta;
 }
 
-void add_uncertainty (std::vector<particle> &particles, double sigma, double theta_kappa)
-{
-    const int len = particles.size();
-    for (int i = 0; i < len; i++)
-      {
-        uncertain_particle(particles[i], sigma, theta_kappa);
-      }
-}
+//void add_uncertainty (std::vector<particle> &particles, double sigma, double theta_kappa)
+//{
+    //const int len = particles.size();
+    //for (int i = 0; i < len; i++)
+      //{
+        //uncertain_particle(particles[i], sigma, theta_kappa);
+      //}
+//}
 
-void uncertain_particle(particle &p, double sigma, double theta_kappa) {
-  p.x += randn (0, sigma);
-  p.y += randn (0, sigma);
+//void uncertain_particle(particle &p, double sigma, double theta_kappa) {
+  //p.x += randn (0, sigma);
+  //p.y += randn (0, sigma);
 
-  // FUCK VON MISIS TIS' SOME REAL OG SHIT
-  p.theta += randn(0, theta_kappa);
-  
-  if (p.theta < -M_PI) {
-    p.theta += 2*M_PI;
-  }
-  else if (p.theta > M_PI) {
-    p.theta -= 2*M_PI;
-  }
-}
+  //// FUCK VON MISIS TIS' SOME REAL OG SHIT
+  //p.theta += randn(0, theta_kappa);
+
+  //if (p.theta < -M_PI) {
+    //p.theta += 2*M_PI;
+  //}
+  //else if (p.theta > M_PI) {
+    //p.theta -= 2*M_PI;
+  //}
+//}
 
 void draw_world (particle &est_pose, std::vector<particle> &particles, IplImage *im)
 {
