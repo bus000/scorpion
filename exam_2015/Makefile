@@ -14,17 +14,17 @@ MainExec = robot_runner
 
 # Files
 SOURCES = $(wildcard *.cpp)
-OBJECTS := $(patsubst %.cpp, %.o, $(OBJECTS))
+OBJECTS := $(patsubst %.cpp, %.o, $(SOURCES))
 
 ## Compile everything ##
-all: $(EXECUTABLE)
+all: $(MainExec)
 
 # Linking
 $(MainExec): $(OBJECTS)
 	$(CXX) $(OPENCVLIBS) $(OBJECTS) -o $(MainExec)
 
 # Compilation.
-$(OBJECTS) : $(SOURCE)
+$(OBJECTS) : $(SOURCES)
 	$(CXX) $(CXXFLAGS) -c $^ 
 
 # Cleaning up
