@@ -16,6 +16,7 @@
 #include "particleFilter.hpp"
 #include "state.hpp"
 #include "stateMachine.hpp"
+#include <unistd.h>
 
 /*
  * Keyboard constants
@@ -30,7 +31,64 @@
  */
 #define NUM_THREADS 8
 
+void test(){
+    measurement meas(particle(0.0,0.0), 1.0, 0.0);
+    particle par[5];
+
+    par[0] = particle(1.0, 0.0, M_PI, 1.0);
+    par[1] = particle(1.0, 0.0, M_PI/2.0, 1.0);
+    par[2] = particle(1.0, 0.0, M_PI/3.0, 1.0);
+    par[3] = particle(1.0, 0.0, M_PI/4.0, 1.0);
+    par[4] = particle(1.0, 0.0, M_PI/5.0, 1.0);
+    par[5] = particle(1.0, 0.0, M_PI/6.0, 1.0);
+
+    particleFilter::thread_data_t data;
+    data.particles = par;
+    data.length = 5;
+
+    particleFilter::mutual_data_t mData;
+    mData.meas = &meas;
+    pthread_mutex_init(&mData.lock_mean, NULL);
+    mData.angleSum = 0;
+    mData.a_mean_thread_count = 0;
+    mData.numThreads = 1;
+    pthread_cond_init(&mData.cond_mean, NULL);
+    mData.totalLength = 5;
+    pthread_mutex_init(&mData.lock_variance, NULL);
+    mData.a_variance = 0;
+    mData.a_variance_thread_count = 0;
+    pthread_cond_init(&mData.cond_variance, NULL);
+
+    data.mutualData = &mData;
+    particleFilter::angleObservationModel(&data);
+
+    for(int i = 0; i < 5; i++){
+        cout << "Weight " << i << ": " << par[i].weight << endl;
+    }
+}
+
+void test2(DriveCtl *driveCtl){
+    //driveCtl->turnLeft(90.0);
+    //usleep(1000000);
+    //driveCtl->turnRight(90.0);
+    //usleep(1000000);
+
+    driveCtl->goToPos(150.0,50.0);
+    usleep(1000000);
+    driveCtl->goToPos(100.0,100.0);
+    usleep(1000000);
+    driveCtl->goToPos(100.0,0.0);
+    usleep(1000000);
+    driveCtl->goToPos(0.0,100.0);
+    usleep(1000000);
+    driveCtl->goToPos(0.0,0.0);
+    usleep(1000000);
+    driveCtl->turn(180.0);
+}
+
 int main() {
+ // test();
+ // return 0;
   // The GUI
   const char *map = "World map";
   const char *window = "Robot View";
@@ -41,13 +99,12 @@ int main() {
 
   // The camera interface
   camera cam;
-  IplImage *im = cam.get_colour ();
 
   // Parameters
   const CvSize size = cvSize (480, 360);
 
   // Initialize particles
-  const int num_particles = 1000;
+  const int num_particles = 10000;
   std::vector<particle> particles;
 
   for(int i = 0; i < num_particles; i++){
@@ -58,29 +115,35 @@ int main() {
   }
 
   // Initialize robot and position proxy.
-  PlayerCc::PlayerClient robot("localhost");
-  //PlayerCc::PlayerClient robot("192.168.100.253");
+  //PlayerCc::PlayerClient robot("localhost");
+  PlayerCc::PlayerClient robot("192.168.100.253");
   PlayerCc::Position2dProxy position(&robot);
-
-  cout << "here" << endl << flush;
-
-  //Filter
-  particleFilter filter(1);
+  DriveCtl driveCtl(&robot, &position);
 
   // Initialize state.
-  State state(&particles, &filter, &robot, &position, cam, *world);
+  StateMachine state(&driveCtl, &particles);
 
   /* -- MAIN LOOP -- */
   while (true) {
+    vector<measurement> meas;
+    for(int i = 0; i < 1; i++){
+        cam.get_colour();
+        IplImage *im = cam.get_colour();
+        measurement tmp(cam, im);
+        meas.push_back(tmp);
+        if(tmp.landmark != NoLandmark)
+            cam.draw_object (im);
+        cvShowImage (window, im);
+    }
+    int action = cvWaitKey (10);
     // Run state machine.
-    RunState(state);
+    state.run(meas);
 
     // Draw map.
     particle est_pose = estimate_pose(particles);
+    cout << "(" << est_pose.x << ", " << est_pose.y << ")" << endl << endl;
     draw_world (est_pose, particles, world);
     cvShowImage (map, world);
-    cvShowImage (window, im);
-    cam.draw_object (im);
   }
 }
 

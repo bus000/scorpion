@@ -28,12 +28,15 @@ public:
     double angle;
     ObservedLandmark landmark;
 
-    measurement(camera &cam, IplImage &im);
+    measurement(camera &cam, IplImage *im);
 
     measurement(particle position, double distance, double angle) {
         this->position = position;
         this->distance = distance;
         this->angle    = angle;
+    }
+    measurement() {
+        this->landmark = NoLandmark;
     }
 
     ~measurement(void);

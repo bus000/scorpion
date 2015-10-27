@@ -1,12 +1,11 @@
 #include "measurement.hpp"
 #include "util.hpp"
 
-measurement::measurement(camera &cam, IplImage &im)
+measurement::measurement(camera &cam, IplImage *im)
 {
-    double tmp_angle;
     colour_prop cp;
 
-    object::type ID = cam.get_object(&im, cp, this->distance, tmp_angle);
+    object::type ID = cam.get_object(im, cp, this->distance, this->angle);
 
     if (ID == object::none) {
         this->landmark = NoLandmark;
@@ -15,10 +14,10 @@ measurement::measurement(camera &cam, IplImage &im)
 
         switch (this->landmark) {
         case RedLandmark:
-            this->position = particle(0, 300);
+            this->position = particle(0, 0);
             break;
         case GreenLandmark:
-            this->position = particle(0,0);
+            this->position = particle(300.0,0);
             break;
         default:
             fprintf(stderr, "error: unknown landmark observed\n");

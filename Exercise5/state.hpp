@@ -30,28 +30,28 @@ class State {
     vector<particle> *particles;
     particle estimatedPose;
     TaskStep currentStep;
-    measurement *lastMeas;
+    measurement lastMeas;
     ObservedLandmark currentLandmark;
     DriveCtl *driveControl;
     particleFilter *filter;
-    camera cam;
-    IplImage image;
+    camera *cam;
+    IplImage *image;
     
 
     State( vector<particle> *particles
          , particleFilter *filter
          , PlayerCc::PlayerClient *robot
          , PlayerCc::Position2dProxy *position
-         , camera &cam
-         , IplImage &im)
+         , camera *cam
+         )
     {
       this->particles = particles;
       this->currentStep = FirstSearch;
       this->currentLandmark = NoLandmark;
       this->driveControl = new DriveCtl(robot, position);
       this->estimatedPose = estimate_pose(*this->particles);
-      this->lastMeas = NULL;
       this->filter = filter;
+      this->cam = cam;
     }
 
     ~State() {
@@ -59,6 +59,6 @@ class State {
     }
 };
 
-measurement* getMeasurement(State &state);
+measurement getMeasurement(State &state);
 
 #endif

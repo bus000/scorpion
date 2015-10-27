@@ -107,27 +107,24 @@ void particleFilter::angleObservationModel(thread_data_t * data_p){
     double stdVariance;
 
     //calculate angle between particle p and the obervation
-    static bool t = true;
     for(int i = 0; i < data_p->length; i++){
-        double P[2] = {
-            cos(data_p->particles[i].theta),
-            sin(data_p->particles[i].theta)
-        };
         double L[2] = {
             mutualData->meas->position.x - data_p->particles[i].x,
             mutualData->meas->position.y - data_p->particles[i].y
-        };
+        }; 
         double Llength = sqrt(pow(L[0],2)+pow(L[1],2));
-        double dotProd = P[0]*L[0]+P[1]*L[1];
-        double det = P[0]*L[1]-P[1]*L[0];
-        double pAngle = atan2(det, dotProd);
-           pAngle -= 2*M_PI;
-        
-        angles.push_back(pAngle);
-        ownAngleSum += pAngle;
+        L[0] /= Llength;
+        L[1] /= Llength;
+
+        double lAngle = atan2(L[1], L[0]);
+        double diffAngle = data_p->particles[i].theta - lAngle;
+        if(lAngle >= M_PI)
+            diffAngle -= 2.0*M_PI;
+        angles.push_back(diffAngle);
+        ownAngleSum += diffAngle;
+
     }
 
-        t = false;
     //Sum the angles for all threads
     pthread_mutex_lock(&mutualData->lock_mean);
     mutualData->angleSum += ownAngleSum;
@@ -141,8 +138,9 @@ void particleFilter::angleObservationModel(thread_data_t * data_p){
     mean = mutualData->angleSum/mutualData->totalLength;
 
     //Calculate the angle variance for every particle
-    for(int i = 0; i < data_p->length; i++)
+    for(int i = 0; i < data_p->length; i++){
         ownVariance += pow(mean - angles[i], 2);
+    }
 
     //Sum the angle variance for all threads
     pthread_mutex_lock(&mutualData->lock_variance);
@@ -156,14 +154,21 @@ void particleFilter::angleObservationModel(thread_data_t * data_p){
     stdVariance = sqrt(mutualData->a_variance);
 
     //update particle weight
+    static bool t = true;
     for(int i = 0; i < data_p->length; i++){
         data_p->particles[i].weight *=
             particleFilter::GaussianDist(mutualData->meas->angle,
                     stdVariance, angles[i]);
+
+        if(t){
+            cout << "weight: " << data_p->particles[i].weight;
+            cout << endl << "angle: " << angles[i] << endl << endl;
+        }
         //cout << 
         //    particleFilter::GaussianDist(mutualData->meas->angle,
         //            stdVariance, angles[i]) << endl;
     }
+    t = false;
 }
 
 void particleFilter::distObservationModel(thread_data_t *data_p){
