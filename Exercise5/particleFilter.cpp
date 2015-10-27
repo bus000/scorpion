@@ -108,7 +108,7 @@ void particleFilter::angleObservationModel(thread_data_t * data_p){
 
     //calculate angle between particle p and the obervation
     for(int i = 0; i < data_p->length; i++){
-        double L[2] = {
+        /*double L[2] = {
             mutualData->meas->position.x - data_p->particles[i].x,
             mutualData->meas->position.y - data_p->particles[i].y
         }; 
@@ -121,8 +121,22 @@ void particleFilter::angleObservationModel(thread_data_t * data_p){
         if(lAngle >= M_PI)
             diffAngle -= 2.0*M_PI;
         angles.push_back(diffAngle);
-        ownAngleSum += diffAngle;
+        ownAngleSum += diffAngle;*/
 
+        double thetaNorm[2] = {
+            cos(data_p->particles[i].theta),
+            -1*sin(data_p->particles[i].theta)
+        };
+        double L[2] = {
+            mutualData->meas->position.x - data_p->particles[i].x,
+            mutualData->meas->position.y - data_p->particles[i].y
+        };
+        double pAngle = atan2(thetaNorm[1], thetaNorm[0]) - atan2(L[1], L[0]);
+        if(pAngle >= M_PI)
+            pAngle -= 2.0*M_PI;
+
+        angles.push_back(pAngle);
+        ownAngleSum += pAngle;
     }
 
     //Sum the angles for all threads

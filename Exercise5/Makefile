@@ -3,7 +3,7 @@
 
 
 # Compile and link flags
-CXX         =  g++ -g -g
+CXX         =  g++ -g
 CXXFLAGS    =
 OPENCVFLAGS = `pkg-config opencv playerc++ --cflags`
 CXXFLAGS    = $(OPENCVFLAGS)
