@@ -29,5 +29,10 @@ for s in sums:
     plt.plot(s[0], s[1], 'ro')
     print (s[0], s[1])
 
+x1 = numpy.arange(0, 30, 0.1)
+x2 = numpy.arange(30, 45, 0.1)
+
 plt.axis([0, 45, 0, 1.6])
+plt.plot(x1, 0.01389 * x1 + 0.0787)
+plt.plot(x2, 0.051711 * x2 - 1.06466)
 plt.savefig('foo.png')
