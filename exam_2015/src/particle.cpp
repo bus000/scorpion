@@ -1,7 +1,7 @@
 #include "particle.hpp"
 #include <cmath>
 
-Particle::Particle(double x, double y, double theta = 0, double weight = 0) {
+Particle::Particle(double x, double y, double theta, double weight) {
     _x = x;
     _y = y;
     _theta = theta;
