@@ -1,5 +1,5 @@
 #include "../src/irSensors.hpp"
-#include "../src/particles.hpp"
+#include "../src/particle.hpp"
 
 using namespace PlayerCc;
 
@@ -9,16 +9,17 @@ int main(int argc, char const *argv[])
     Position2dProxy position(&robot);
     IRSensors irSensors(&robot);
 
-    print("Angle: %f",irSensors.getParticleAngle((1.0,0.0,0.0), (0.0,1.0,0.0)))
+    printf("Angle: %f",irSensors.getParticleAngle((1.0,0.0,0.0),
+                (0.0,1.0,0.0)));
 
     while (true) {
-        vector<particle> res = irSensors.getObstacles();
+        vector<Particle> res = irSensors.getObstacles();
         printf("number of sensors sensing something is %d\n", res.size());
 
         for (int i = 0; i < res.size(); i++) {
             Particle par = res.at(i);
-            printf("object spotted at (%f, %f), len: %f\n", par.x, par.y,
-                    sqrt(par.x * par.x + par.y * par.y));
+            printf("object spotted at (%f, %f), len: %f\n", par.x(), par.y(),
+                    sqrt(par.x() * par.x() + par.y() * par.y()));
         }
     }
 
