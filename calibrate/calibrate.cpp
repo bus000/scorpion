@@ -34,8 +34,8 @@ int main(int argc, char **argv) {
     std::vector<Point2f> corners;
     std::vector<std::vector<Point2f> > corners_list;
     
-    Size patternSize(4, 3); // Number of internal corner points in the calibration checkerboard pattern
-    int patternUnit = 30; // measured in mm
+    Size patternSize(3, 4); // Number of internal corner points in the calibration checkerboard pattern
+    int patternUnit = 50; // measured in mm
 
     VideoCapture cap(0);
     
@@ -108,6 +108,8 @@ int main(int argc, char **argv) {
 
     printf("camera fx: %f\n", cameraMatrix.at<double>(0,0));
     printf("camera fy: %f\n", cameraMatrix.at<double>(1,1));
+    printf("camera cx: %f\n", cameraMatrix.at<double>(0,2));
+    printf("camera cy: %f\n", cameraMatrix.at<double>(1,2));
     
     return 0;
 }
