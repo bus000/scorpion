@@ -10,6 +10,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+#include "particle.hpp"
+
 // Chessboard x by y
 #define PATTERN_SIZE Size(3, 4)
 
@@ -21,25 +23,42 @@
 using namespace cv;
 using namespace std;
 
+class Measurement {
+  public:
+    bool invalid;
+    Particle position;
+    Particle measurement;
+
+    Measurement() {
+      invalid = true;
+    }
+
+    Measurement(Particle p, Particle m) {
+      this->position    = p;
+      this->measurement = m;
+    };
+
+    ~Measurement() {};
+};
+
 class Camera {
-public:
-  Camera(double fx, double fy, double cx);
-  ~Camera();
+  public:
+    Camera(double fx, double fy, double cx);
+    ~Camera();
 
-  // TODO: return particle
-  void measure(bool showGui = true);
+    Measurement measure(bool showGui = true);
 
-private:
-  void enhanceContrast(Mat &frame, Mat &target);
+  private:
+    void enhanceContrast(Mat &frame, Mat &target);
 
-  // Camera parameters
-  double fx;
-  double fy;
-  double cx;
+    // Camera parameters
+    double fx;
+    double fy;
+    double cx;
 
-  // OpenCV webcam video capture
-  VideoCapture *videoCapture;
-  
+    // OpenCV webcam video capture
+    VideoCapture *videoCapture;
+    
 };
 
 
