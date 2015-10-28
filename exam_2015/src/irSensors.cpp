@@ -33,6 +33,10 @@ vector<Particle> IRSensors::getObstacles(void)
     }
 
     for (int i = 0; i < SENSOR_NUM; i++) {
+        sensorData[i] /= (double) this->filterStrength;
+        if (sensorData[i] > CUTOFF)
+            continue;
+
         int index;
         int cm = sensorValueToCM(sensorData[i]);
         Particle angle = this->sensorAngle(i);
