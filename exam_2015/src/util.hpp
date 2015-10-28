@@ -1,10 +1,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "state.hpp"
+#define EPSILON (0.001)
 
-ObservedLandmark colour(colour_prop cp);
-bool AreSame(double a, double b);
-
+bool areSame(double a, double b);
 
 #endif

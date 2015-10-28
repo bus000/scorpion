@@ -1,15 +1,7 @@
 #include "util.hpp"
+#include <math.h>
 
-#define EPSILON (0.001)
-
-
-ObservedLandmark colour(colour_prop cp)
+bool areSame(double a, double b)
 {
-    return cp.red > cp.green ? RedLandmark : GreenLandmark;
-}
-
-bool AreSame(double a, double b)
-{
-        return fabs(a - b) < EPSILON;
-
+    return fabs(a - b) < EPSILON;
 }
