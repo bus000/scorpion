@@ -45,6 +45,40 @@ double IRSensors::sensorValueToCM(double sensorValue)
         return (sensorValue - 0.0787) / 0.01389;
 }
 
+Particle IRSensors::sensorAngle(int sensor)
+{
+    switch (sensor) {
+    case IrEastNorthEast:
+        return Particle(0.7071067, 0.7071067);
+    case IrWestNorthWest:
+        return Particle(0.7071067, -0.7071067);
+    case IrNorth:
+        return Particle(1.0, 0.0);
+    case IrNorthEast:
+        return Particle(0.5, 0.866025);
+    case IrNorthWest:
+        return Particle(0.5, -0.866025);
+    case IrNarrowNorthNorthWest:
+        return Particle(1.0, 0.0);
+    case IrNarrowNorthNorthEast:
+        return Particle(1.0, 0.0);
+    case IrCenterNorthNorthWest:
+        return Particle(0.5, -0.866025);
+    case IrCenterNorthNorthEast:
+        return Particle(0.5, 0.866025);
+    case IrWest:
+        return Particle(0.0, -1.0);
+    case IrEast:
+        return Particle(0.0, 1.0);
+    case IrSouthLeft:
+        return Particle(-1.0, 0.0);
+    case IrSouthRight:
+        return Particle(-1.0, 0.0);
+    default:
+        fprintf(stderr, "err: unknown IR sensor with ID %d\n", sensor);
+        return Particle(0.0, 0.0);
+    }
+}
 
 int IRSensors::parGetIndex(vector<Particle> parts, Particle par)
 {

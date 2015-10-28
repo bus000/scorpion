@@ -25,6 +25,22 @@ using namespace std;
 #define IR_bw_s   (11)
 #define IR_be_s   (12)
 
+typedef enum {
+    IrEastNorthEast = 0,
+    IrWestNorthWest,
+    IrNorth,
+    IrNorthEast,
+    IrNorthWest,
+    IrNarrowNorthNorthWest,
+    IrNarrowNorthNorthEast,
+    IrCenterNorthNorthWest,
+    IrCenterNorthNorthEast,
+    IrWest,
+    IrEast,
+    IrSouthLeft,
+    IrSouthRight
+} ir_sensors_t;
+
 /* Handle the inferred sensors on the robot. */
 class IRSensors {
 public:
