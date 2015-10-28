@@ -1,4 +1,5 @@
 include Makefile.def
+.PHONY: all test clean
 
 all:
 	cd src/; make
