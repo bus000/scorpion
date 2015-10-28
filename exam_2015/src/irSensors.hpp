@@ -45,6 +45,7 @@ private:
     double sensorValueToCM(double sensorValue);
     Particle sensorAngle(int sensor);
     int parGetIndex(vector<Particle> parts, Particle par);
+    double getParticleAngle(Particle part2, Particle part2 = (0.0,1.0,0.0));
 
     /* Private variables. */
     unsigned int filterStrength;
