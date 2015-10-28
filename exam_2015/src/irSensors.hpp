@@ -48,8 +48,6 @@ public:
     IRSensors(PlayerCc::PlayerClient *robot);
     IRSensors(PlayerCc::PlayerClient *robot, unsigned int filterStrength);
     ~IRSensors(void);
-    /* TODO: MOVE. */
-    double getParticleAngle(Particle part1, Particle part2 = (0.0,1.0,0.0));
 
     /* Returns a list of particles in the directions obstacles are discovered.
      * If no obstacles is found, an empty vector is returned. The distance from
