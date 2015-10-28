@@ -3,11 +3,13 @@
 
 #include <libplayerc++/playerc++.h>
 #include <vector>
-#include "particles.hpp"
+#include "particle.hpp"
 
 using namespace std;
 
 #define DEFAULT_FILTERSTRENGTH (10)
+#define SENSOR_VALUE_FUNCTION_SHIFT (0.48667)
+#define SENSOR_NUM (13)
 
 /* Sensors. */
 #define IR_bn_ene (0)
@@ -24,6 +26,22 @@ using namespace std;
 #define IR_bw_s   (11)
 #define IR_be_s   (12)
 
+typedef enum {
+    IrEastNorthEast = 0,
+    IrWestNorthWest,
+    IrNorth,
+    IrNorthEast,
+    IrNorthWest,
+    IrNarrowNorthNorthWest,
+    IrNarrowNorthNorthEast,
+    IrCenterNorthNorthWest,
+    IrCenterNorthNorthEast,
+    IrWest,
+    IrEast,
+    IrSouthLeft,
+    IrSouthRight
+} ir_sensors_t;
+
 /* Handle the inferred sensors on the robot. */
 class IRSensors {
 public:
@@ -35,11 +53,17 @@ public:
      * If no obstacles is found, an empty vector is returned. The distance from
      * the robot to the obstacle can be approximated with the length of the
      * particle returned. */
-    vector<particle> getObstacles(void);
+    vector<Particle> getObstacles(void);
 
-    vector<particle> getObstaclePosition(particle robotPos);
+    vector<Particle> getObstaclePosition(Particle robotPos);
 
 private:
+    /* Private methods. */
+    double sensorValueToCM(double sensorValue);
+    Particle sensorAngle(int sensor);
+    int parGetIndex(vector<Particle> parts, Particle par);
+
+    /* Private variables. */
     unsigned int filterStrength;
     PlayerCc::PlayerClient *robot;
     PlayerCc::IrProxy *irProxy;
