@@ -1,4 +1,4 @@
-#include "Particle.hpp"
+#include "particle.hpp"
 #include <cmath>
 
 Particle::Particle(double x = 0, double y = 0, double theta = 0, double weight = 0) {
