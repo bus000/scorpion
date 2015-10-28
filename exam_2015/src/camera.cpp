@@ -20,7 +20,7 @@ Camera::~Camera() {
 
 }
 
-void Camera::measure(bool showGui) {
+Measurement Camera::measure(bool showGui) {
     cvWaitKey(30);
     VideoCapture *vcap = this->videoCapture;
     Mat frame;
@@ -28,7 +28,7 @@ void Camera::measure(bool showGui) {
     // Read frame from webcam
     vcap->read(frame);
 
-    enhanceContrast(frame, frame);
+    // enhanceContrast(frame, frame);
 
     // Find checkerboard
     Mat gray;
@@ -53,7 +53,7 @@ void Camera::measure(bool showGui) {
         cout << "[Camera] No landmark found." << endl;
         #endif
 
-        return;
+        return Measurement();
     } 
 
     // Increase position accuracy
@@ -131,6 +131,24 @@ void Camera::measure(bool showGui) {
     red   = red / sum;
     green = green / sum;
     blue  = blue / sum;
+    
+    // Lookup landmark position
+    Particle position;
+      
+    bool isRed = red > green;
+
+    if (horizontal) {
+      if (isRed)  position = Particle(300, 400);  // L4
+      if (!isRed) position = Particle(0, 400);    // L3
+    }
+    else {
+      if (isRed)  position = Particle(0, 0);      // L1
+      if (!isRed) position = Particle(300, 0);    // L2
+    }
+
+    // Calculate distance and angle particle (vector)
+    Particle measurement = Particle::createUnit(angle);
+    measurement.scale(distance);
 
     // Possibly show GUI 
     if (showGui) {
@@ -157,8 +175,7 @@ void Camera::measure(bool showGui) {
            << endl << endl;
     #endif
 
-    // TODO: return something
-    return;
+    return Measurement(position, measurement);
 }
 
 void Camera::enhanceContrast(Mat &frame, Mat &target) {

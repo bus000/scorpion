@@ -9,6 +9,9 @@ TARGETS   =$(SOURCES:.cpp=)$
 
 all: $(TARGETS)
 
+camera: camera-test.cpp
+	$(CXX) $(CXXFLAGS) $(LIBS) -o camera -I../src/ 
+
 $(TARGETS): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $@.o $(EXOBJECTS) -o $@ $(LIBS)
 	./$@ > $@_output.txt
