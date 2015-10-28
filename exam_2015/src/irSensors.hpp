@@ -43,6 +43,8 @@ public:
 private:
     /* Private methods. */
     double sensorValueToCM(double sensorValue);
+    Particle sensorAngle(int sensor);
+    int parGetIndex(vector<Particle> parts, Particle par);
 
     /* Private variables. */
     unsigned int filterStrength;

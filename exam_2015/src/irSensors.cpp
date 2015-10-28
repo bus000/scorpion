@@ -1,5 +1,5 @@
 #include "irSensors.hpp"
-#include "particles.hpp"
+#include "particle.hpp"
 #include <vector>
 #include <libplayerc++/playerc++.h>
 
@@ -43,6 +43,12 @@ double IRSensors::sensorValueToCM(double sensorValue)
         return (sensorValue + 1.06466) / 0.051711;
     else
         return (sensorValue - 0.0787) / 0.01389;
+}
+
+
+int IRSensors::parGetIndex(vector<Particle> parts, Particle par)
+{
+
 }
 
 IRSensors::~IRSensors(void)
