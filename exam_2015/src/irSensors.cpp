@@ -19,20 +19,32 @@ IRSensors::IRSensors(PlayerCc::PlayerClient *robot, unsigned int filterStrength)
     this->irProxy = new PlayerCc::IrProxy(this->robot);
 }
 
-vector<particle> IRSensors::getObstacles(void)
+vector<Particle> IRSensors::getObstacles(void)
 {
-    vector<particle> result;
-    double sensorData = 0.0;
+    vector<Particle> result;
+    double sensorData[SENSOR_NUM] = {0};
 
     for (int i = 0; i < this->filterStrength; i++) {
         this->robot->Read();
-        sensorData += this->irProxy->GetRange(IR_bn_n);
+        for (int j = 0; j < SENSOR_NUM; j++) {
+            sensorData[j] += irProxy->GetRange(j);
+        }
     }
 
-    if ((sensorData / this->filterStrength) < 1.5)
-        result.push_back(
-                particle(sensorValueToCM((sensorData / this->filterStrength)),
-                    0.0, 0.0));
+    for (int i = 0; i < SENSOR_NUM; i++) {
+        int index;
+        int cm = sensorValueToCM(sensorData[i]);
+        Particle angle = this->sensorAngle(i);
+        angle.scale(cm);
+
+        if ((index = this->parGetIndex(result, angle)) != -1) {
+            Particle par = result.at(index);
+            result.at(index).x((par.x() + angle.x()) / 2);
+            result.at(index).y((par.y() + angle.y()) / 2);
+        } else {
+            result.push_back(angle);
+        }
+    }
 
     return result;
 }
