@@ -10,4 +10,4 @@ $(OBJECTS): $(SOURCE)
 	$(CXX) $(CXXFLAGS) -c $?
 
 clean:
-	rm *.o ../$(MainExec)
+	rm -f *.o ../$(MainExec)
