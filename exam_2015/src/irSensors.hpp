@@ -8,6 +8,7 @@
 using namespace std;
 
 #define DEFAULT_FILTERSTRENGTH (10)
+#define SENSOR_VALUE_FUNCTION_SHIFT (0.48667)
 
 /* Sensors. */
 #define IR_bn_ene (0)
@@ -40,6 +41,10 @@ public:
     vector<particle> getObstaclePosition(particle robotPos);
 
 private:
+    /* Private methods. */
+    double sensorValueToCM(double sensorValue);
+
+    /* Private variables. */
     unsigned int filterStrength;
     PlayerCc::PlayerClient *robot;
     PlayerCc::IrProxy *irProxy;
