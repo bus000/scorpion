@@ -101,11 +101,11 @@ int IRSensors::parGetIndex(vector<Particle> parts, Particle part)
 
     for(int i = 0; i < parts.size(); i++)
     {
-        angleY = getParticleAngle(parts.at[i]);
+        angleY = getParticleAngle(parts.at(i));
         angleArg = getParticleAngle(part);
 
-        if(AreSame(angleY,angleArg))
-            return 1;
+        if(areSame(angleY,angleArg))
+            return i;
     }
 
     return -1;
