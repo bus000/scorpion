@@ -3,12 +3,13 @@
 
 #include <libplayerc++/playerc++.h>
 #include <vector>
-#include "particles.hpp"
+#include "particle.hpp"
 
 using namespace std;
 
 #define DEFAULT_FILTERSTRENGTH (10)
 #define SENSOR_VALUE_FUNCTION_SHIFT (0.48667)
+#define SENSOR_NUM (13)
 
 /* Sensors. */
 #define IR_bn_ene (0)
@@ -52,9 +53,9 @@ public:
      * If no obstacles is found, an empty vector is returned. The distance from
      * the robot to the obstacle can be approximated with the length of the
      * particle returned. */
-    vector<particle> getObstacles(void);
+    vector<Particle> getObstacles(void);
 
-    vector<particle> getObstaclePosition(particle robotPos);
+    vector<Particle> getObstaclePosition(Particle robotPos);
 
 private:
     /* Private methods. */
