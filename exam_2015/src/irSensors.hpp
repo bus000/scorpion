@@ -10,6 +10,7 @@ using namespace std;
 #define DEFAULT_FILTERSTRENGTH (10)
 #define SENSOR_VALUE_FUNCTION_SHIFT (0.48667)
 #define SENSOR_NUM (13)
+#define CUTOFF (1.5)
 
 /* Sensors. */
 #define IR_bn_ene (0)
