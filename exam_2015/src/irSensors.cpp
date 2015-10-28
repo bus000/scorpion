@@ -1,5 +1,6 @@
 #include "irSensors.hpp"
 #include "particle.hpp"
+#include "util.hpp"
 #include <vector>
 #include <libplayerc++/playerc++.h>
 
@@ -92,9 +93,27 @@ Particle IRSensors::sensorAngle(int sensor)
     }
 }
 
-int IRSensors::parGetIndex(vector<Particle> parts, Particle par)
+int IRSensors::parGetIndex(vector<Particle> parts, Particle part)
 {
+    double angleY;
+    double angleArg;
 
+
+    for(int i = 0; i < parts.size(); i++)
+    {
+        angleY = getParticleAngle(parts.at[i]);
+        angleArg = getParticleAngle(part);
+
+        if(AreSame(angleY,angleArg))
+            return 1;
+    }
+
+    return -1;
+}
+
+double IRSensors::getParticleAngle(Particle part1, Particle part2)
+{
+    return atan2(part1.x(), part1.y()) - atan2(part2.x(), part2.y());
 }
 
 IRSensors::~IRSensors(void)

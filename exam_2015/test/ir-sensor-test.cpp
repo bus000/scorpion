@@ -9,6 +9,8 @@ int main(int argc, char const *argv[])
     Position2dProxy position(&robot);
     IRSensors irSensors(&robot);
 
+    print("Angle: %f",irSensors.getParticleAngle((1.0,0.0,0.0), (0.0,1.0,0.0)))
+
     while (true) {
         vector<particle> res = irSensors.getObstacles();
         printf("number of sensors sensing something is %d\n", res.size());
