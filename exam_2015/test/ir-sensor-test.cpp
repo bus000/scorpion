@@ -9,12 +9,14 @@ int main(int argc, char const *argv[])
     Position2dProxy position(&robot);
     IRSensors irSensors(&robot);
 
-    for(int i = 0; ; i++) {
+    while (true) {
         vector<particle> res = irSensors.getObstacles();
-        if (res.size() > 0) {
-            particle part = res.at(0);
-            printf("(%f, %f) len: %f\n", part.x, part.y, sqrt(part.x * part.x +
-                        part.y * part.y));
+        printf("number of sensors sensing something is %d\n", res.size());
+
+        for (int i = 0; i < res.size(); i++) {
+            Particle par = res.at(i);
+            printf("object spotted at (%f, %f), len: %f\n", par.x, par.y,
+                    sqrt(par.x * par.x + par.y * par.y));
         }
     }
 
