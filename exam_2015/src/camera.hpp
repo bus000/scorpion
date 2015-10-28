@@ -14,7 +14,7 @@
 #define PATTERN_SIZE Size(3, 4)
 
 // Cell size in mm
-#define PATTERN_UNIT 50.0
+#define PATTERN_UNIT 5.0
 
 #define CAMERA_WINDOW "Camera Window"
 
