@@ -2,7 +2,7 @@
 
 int pelle(void)
 {
-    printf("jeg elsker monader\n");
+    printf("jeg elsker store monader\n");
 
     return 'p' << 'e' << 'l' << 'l' << 'e';
 }
