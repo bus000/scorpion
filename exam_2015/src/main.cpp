@@ -28,8 +28,22 @@ int main(int argc, char *argv[])
     driveCtl.setYPos(map.width() / 2);
 
     Particle goal(driveCtl.getXPos() + 250, driveCtl.getYPos(), 0.0);
+    Particle robotPos(driveCtl.getXPos(), driveCtl.getYPos(), 0.0);
+
+    vector<Particle> path = map.findPath(robotPos, goal);
 
     while (path.size() > 0) {
+      // Find obstacles
+      updateMap(sensors, map, robotPos);
+
+      // Calculate new path
+      path = map.findPath(robotPos, goal);
+
+      Particle nextStep = path.at(0);
+      driveCtl.goToPos(nextStep.x(), nextStep.y());
+
+      map.print();
+      cout << "\033[2J\033[1;1H";
     }
 
     return EXIT_SUCCESS;
