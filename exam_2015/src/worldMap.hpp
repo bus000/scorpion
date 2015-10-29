@@ -44,8 +44,9 @@ public:
     WorldMap(double width, double height, int numSqWidth, int numSqHeight);
     ~WorldMap();
     void field(int col, int row, bool mark);
-    void fieldCM(double x, double y, bool mark);
     bool& field(int col, int row);
+
+    void markAround(Particle robot, Particle obstacle);
     //[col][row]
     bool* operator[] (int col);
     int getRowFromY(double y);

@@ -30,18 +30,22 @@ int main(int argc, char *argv[])
         vector<Particle> path = map.findPath(curPos, goal);
         while (path.size() > 0) {
             Particle next = path.at(0);
+
             map.print(path, curPos);
+
             printf("robotpos (%f, %f)\n", driveCtl.getXPos(), driveCtl.getYPos());
             printf("next (%f, %f)\n", next.x(), next.y());
+
             sleep(1);
             driveCtl.goToPos(next.x(), next.y());
+
             curPos = Particle(driveCtl.getXPos(), driveCtl.getYPos(), 0.0);
 
             /* Obstacles. */
             obstacles = sensors.getObstaclePosition(curPos);
             for (int i = 0; i < obstacles.size(); i++) {
                 Particle obstacle = obstacles.at(i);
-                map.fieldCM(obstacle.x(), obstacle.y(), true);
+                map.markAround(curPos, obstacle, true);
             }
 
             /* Calculate new path. */

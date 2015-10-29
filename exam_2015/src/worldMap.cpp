@@ -26,12 +26,26 @@ void WorldMap::clear(){
 }
 
 void WorldMap::field(int col, int row, bool mark){
+    if (col > _numSqWidth  ||
+        row > _numSqHeight ||
+        col < 0 ||
+        row < 0) {
+      cout << "Field out of bounds" << endl;
+      return;
+    }
+
     field(col, row) = mark;
 }
 
 bool& WorldMap::field(int col, int row){
-    assert(col < _numSqWidth);
-    assert(row < _numSqHeight);
+    if (col > _numSqWidth  ||
+        row > _numSqHeight ||
+        col < 0 ||
+        row < 0) {
+      cout << "Field out of bounds" << endl;
+      return true;
+    }
+
     return map[(col*_numSqWidth)+row];
 }
 
@@ -90,22 +104,40 @@ void WorldMap::print() {
     }
 }
 
-void WorldMap::fieldCM(double x, double y, bool mark) {
-    int x_pos = this->getColFromX(x);
-    int y_pos = this->getRowFromY(y);
+void WorldMap::markAround(Particle robot, Particle obstacle) {
+    int obsX = this->getColFromX(obstacle.x());
+    int obsY = this->getRowFromY(obstacle.y());
 
-    printf("setting obstacle at (%d, %d)\n", x_pos, y_pos);
+    int robX = this->getColFromX(robot.x());
+    int robY = this->getRowFromY(robot.y());
 
-    if (x_pos < this->_numSqWidth && y_pos < this->_numSqHeight)
-        this->field(x_pos, y_pos, mark);
-    else
-        fprintf(stderr, "err: setting object outside map (%d, %d)\n", x_pos,
-                y_pos);
+    if (obsX == robX && obsY == robY) {
+        obstacle.move(-robot.x(), -robot.y()); 
+
+        bool side = abs(obstacle.y()) > abs(obstacle.x());
+
+        if (side) {
+            if (obstacle.y() > 0)
+                this->field(robX, robY + 1, true);
+            else
+                this->field(robX, roby - 1, true);
+        }
+        else {
+            if (obstacle.x() > 0)
+                this->field(robX + 1, robY, true);
+            else
+                this->field(robX - 1, robY, true);
+        }
+    }
+    else {
+      this->field(obsX, obsY);
+    }
 }
 
 void WorldMap::print(vector<Particle> &path, Particle curPos) {
     for (int y = 0; y < this->numSquareHeight(); y++) {
         for (int x = 0; x < this->numSquareWidth(); x++) {
+
             if (this->getColFromX(curPos.x()) == x &&
                     this->getRowFromY(curPos.y()) == y) {
                 cout << " R ";
@@ -122,11 +154,11 @@ void WorldMap::print(vector<Particle> &path, Particle curPos) {
                 };
             }
 
-            if (onPath) {
+            if (field(x, y))
+                cout << " @ ";
+            else if (onPath) {
                 cout << " * ";
             }
-            else if (field(x, y))
-                cout << " @ ";
             else
                 cout << " . ";
         }
@@ -137,7 +169,6 @@ void WorldMap::print(vector<Particle> &path, Particle curPos) {
 
 //                PATH-FINDING                //
 // ------******------******------******------ //
-
 
 PathNode::PathNode( int x
         , int y
