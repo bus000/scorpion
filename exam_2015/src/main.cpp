@@ -4,11 +4,11 @@
 #include <unistd.h>
 
 void updateMap(IRSensors &sensors, WorldMap &map, Particle robot) {
-    vector<Particle> obstacles = sensors.getObstaclePosition(curPos);
+    vector<Particle> obstacles = sensors.getObstaclePosition(robot);
 
     for (int i = 0; i < obstacles.size(); i++) {
         Particle obstacle = obstacles.at(i);
-        map.markAround(robot, obstacle, true);
+        map.markAround(robot, obstacle);
     }
 }
 
@@ -33,17 +33,24 @@ int main(int argc, char *argv[])
     vector<Particle> path = map.findPath(robotPos, goal);
 
     while (path.size() > 0) {
-      // Find obstacles
-      updateMap(sensors, map, robotPos);
+        robotPos.x(driveCtl.getXPos());
+        robotPos.y(driveCtl.getYPos());
 
-      // Calculate new path
-      path = map.findPath(robotPos, goal);
+        // Find obstacles
+        updateMap(sensors, map, robotPos);
 
-      Particle nextStep = path.at(0);
-      driveCtl.goToPos(nextStep.x(), nextStep.y());
+        // Calculate new path
+        path = map.findPath(robotPos, goal);
 
-      map.print();
-      cout << "\033[2J\033[1;1H";
+        Particle nextStep = path.at(0);
+        driveCtl.goToPos(nextStep.x(), nextStep.y());
+
+        /* Update robot position. */
+        robotPos.x(driveCtl.getXPos());
+        robotPos.y(driveCtl.getYPos());
+
+        cout << "\033[2J\033[1;1H";
+        map.print(path, robotPos);
     }
 
     return EXIT_SUCCESS;

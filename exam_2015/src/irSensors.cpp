@@ -35,6 +35,7 @@ vector<Particle> IRSensors::getObstacles(void)
         this->robot->Read();
         for (int j = 0; j < SENSOR_NUM; j++) {
             sensorData[j] += irProxy->GetRange(j);
+            printf("read from sensor %d value %f\n", j, irProxy->GetRange(j));
         }
     }
 
