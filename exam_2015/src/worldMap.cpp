@@ -45,14 +45,21 @@ double WorldMap::height(){
     return _height;
 }
 
-int WorldMap::squareWidth(){
+int WorldMap::numSquareWidth(){
     return _numSqWidth;
+}
+
+int WorldMap::numSquareHeight(){
+    return sqHeight;
+}
+
+int WorldMap::squareWidth(){
+    return sqWidth;
 }
 
 int WorldMap::squareHeight(){
     return _numSqHeight;
 }
-
 int WorldMap::getRowFromY(double y){
     double row = y/sqHeight;
     return (int)row;

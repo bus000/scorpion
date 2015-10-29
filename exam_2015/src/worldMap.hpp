@@ -17,6 +17,8 @@ public:
 
     int squareWidth();
     int squareHeight();
+    int numSquareWidth();
+    int numSquareHeight();
     double width();
     double height();
 
