@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cassert>
 #include <stdio.h>
+#include <iostream>
 
 WorldMap::WorldMap(double width, double height, int numSqWidth, int numSqHeight){
     _width = width;
@@ -76,20 +77,20 @@ bool& WorldMap::fieldAt(double x, double y){
 }
 
 void WorldMap::print() {
-    for (int i = 0; i < (this->_width * 2) + 2; i++)
+    for (int i = 0; i < (this->_numSqWidth * 2) + 2; i++)
         putchar('-');
     putchar('\n');
 
-    for (int x = 0; x < this->_width; x++) {
+    for (int x = 0; x < this->_numSqWidth; x++) {
         putchar('|');
-        for (int y = 0; y < this->_height; y++) {
+        for (int y = 0; y < this->_numSqHeight; y++) {
             if (fieldAt(x, y))
                 printf("X|");
             else
                 printf(" |");
         }
         printf("\n");
-        for (int i = 0; i < (this->_width * 2) + 2; i++)
+        for (int i = 0; i < (this->_numSqWidth* 2) + 2; i++)
             putchar('-');
         printf("\n");
     }
@@ -175,6 +176,7 @@ vector<Particle> WorldMap::findPath( Particle &start
     open.push_back(startNode);
 
     while (true) {
+
         // If there are no nodes in 'open' there is no path.
         if (open.size() == 0) {
             return vector<Particle>();
@@ -184,7 +186,13 @@ vector<Particle> WorldMap::findPath( Particle &start
         PathNode *current = *min_element(open.begin(), open.end(), byF);
 
         // Move the current square from open to closed.
-        open.erase(find(open.begin(), open.end(), current));
+        for (int i = 0; i < open.size(); i++) {
+          if (open[i] == current) {
+            open.erase(open.begin() + i);
+            break;
+          }
+        }
+
         closed.push_back(current);
 
         // If the current square is the goal, we are done
@@ -206,16 +214,19 @@ vector<Particle> WorldMap::findPath( Particle &start
                 delete tryOut;
                 continue;
             }
-
+            
             tryOut->giveParent(current);
             bool inOpen = false;
 
+            // Check if the same tile is already in open.
             for (int j = 0; j < open.size(); j++) {
-                PathNode *other = open[i];
+                PathNode *other = open[j];
                 if (other->x() == tryOut->x() &&
-                        other->y() == tryOut->y() &&
-                        other->g() > tryOut->g()) {
-                    //
+                    other->y() == tryOut->y() &&
+                    other->f() > tryOut->f()) {
+
+                    // If the other tile has a higher f, we
+                    // have found a better path to the same tile.
                     other->giveParent(current);
                     inOpen = true;
                     break;
@@ -237,16 +248,13 @@ vector<Particle> WorldMap::findPath( Particle &start
 
     PathNode *root = goalNode;
 
-    while (true) {
+    while (root != NULL) {
         Particle p( this->squareWidth()  * root->x() + this->squareWidth()  / 2.0
-                , this->squareHeight() * root->y() + this->squareHeight() / 2.0);
+                  , this->squareHeight() * root->y() + this->squareHeight() / 2.0);
 
         result.push_back(p);
 
-        if (root->parent() == NULL)
-            break;
-        else
-            root = root->parent();
+          root = root->parent();
     }
 
     // The path comes out in reverse, unreverse it
@@ -262,10 +270,13 @@ vector<Particle> WorldMap::findPath( Particle &start
 vector<PathNode*> WorldMap::getWalkable(int x, int y, int goalX, int goalY) {
     vector<PathNode*> walkable;
 
-    bool up, down, left, right = false;
+    bool up    = false;
+    bool down  = false;
+    bool left  = false;
+    bool right = false;
 
     // Check sides
-    if (this->field(x, y+1) && y+1 < this->height()) {
+    if (!this->field(x, y+1) && y+1 < this->height()) {
         up = true;
         walkable.push_back(new PathNode(x, y + 1, goalX, goalY));
     }
@@ -277,31 +288,31 @@ vector<PathNode*> WorldMap::getWalkable(int x, int y, int goalX, int goalY) {
 
     // Check sides
     if (!this->field(x+1, y) && x+1 < this->width()) {
-        left = true;
+        right = true;
         walkable.push_back(new PathNode(x + 1, y , goalX, goalY));
     }
 
     if (!this->field(x-1, y) && x-1 >= 0) {
-        right = true;
+        left = true;
         walkable.push_back(new PathNode(x - 1, y , goalX, goalY));
     }
 
     // Check diagonals
     // We must only move to diagnal tiles if they are not
     // adjacet to an unwalkable tile.
-    if (!this->field(x + 1, y + 1) && right && up) {
+    if (up && right && !this->field(x + 1, y + 1)) {
         walkable.push_back(new PathNode(x + 1, y + 1, goalX, goalY));
     }
 
-    if (!this->field(x - 1, y + 1) && left && up) {
+    if (up && left && !this->field(x - 1, y + 1)) {
         walkable.push_back(new PathNode(x - 1, y + 1, goalX, goalY));
     }
 
-    if (!this->field(x - 1, y - 1) && left && down) {
+    if (down && left && !this->field(x - 1, y - 1)) {
         walkable.push_back(new PathNode(x - 1, y - 1, goalX, goalY));
     }
 
-    if (!this->field(x + 1, y - 1) && right && down) {
+    if (down && right && !this->field(x + 1, y - 1)) {
         walkable.push_back(new PathNode(x + 1, y - 1, goalX, goalY));
     }
 
