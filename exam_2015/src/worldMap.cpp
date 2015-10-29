@@ -34,6 +34,7 @@ void WorldMap::field(int col, int row, bool mark){
       return;
     }
 
+    cout << "Tile (" << col << ", " << crow << ") marked" << endl;
     field(col, row) = mark;
 }
 
@@ -104,9 +105,10 @@ void WorldMap::markAround(Particle robot, Particle obstacle) {
     int robY = this->getRowFromY(robot.y());
 
     if (obsX == robX && obsY == robY) {
+
         obstacle.move(-robot.x(), -robot.y(), 0.0);
 
-        bool side = abs(obstacle.y()) > abs(obstacle.x());
+        bool side = fabs(obstacle.y()) > fabs(obstacle.x());
 
         if (side) {
             if (obstacle.y() > 0)
@@ -122,7 +124,7 @@ void WorldMap::markAround(Particle robot, Particle obstacle) {
         }
     }
     else {
-      this->field(obsX, obsY);
+      this->field(obsX, obsY, true);
     }
 }
 
@@ -219,7 +221,7 @@ bool byF(PathNode *a, PathNode *b) {
 };
 
 vector<Particle> WorldMap::findPath( Particle &start
-        , Particle &goal) {
+                                   , Particle &goal) {
     vector<PathNode*> open;
     vector<PathNode*> closed;
 
@@ -354,23 +356,23 @@ vector<PathNode*> WorldMap::getWalkable(int x, int y, int goalX, int goalY) {
 
     // Check sides
     if (!this->field(x, y+1) && y+1 < this->height()) {
-        up = true;
+        right = true;
         walkable.push_back(new PathNode(x, y + 1, goalX, goalY));
     }
 
     if (!this->field(x, y-1) && y-1 >= 0) {
-        down = true;
+        left = true;
         walkable.push_back(new PathNode(x, y - 1, goalX, goalY));
     }
 
     // Check sides
     if (!this->field(x+1, y) && x+1 < this->width()) {
-        right = true;
+        up = true;
         walkable.push_back(new PathNode(x + 1, y , goalX, goalY));
     }
 
     if (!this->field(x-1, y) && x-1 >= 0) {
-        left = true;
+        down = true;
         walkable.push_back(new PathNode(x - 1, y , goalX, goalY));
     }
 
@@ -381,16 +383,16 @@ vector<PathNode*> WorldMap::getWalkable(int x, int y, int goalX, int goalY) {
         walkable.push_back(new PathNode(x + 1, y + 1, goalX, goalY));
     }
 
-    if (up && left && !this->field(x - 1, y + 1)) {
-        walkable.push_back(new PathNode(x - 1, y + 1, goalX, goalY));
+    if (up && left && !this->field(x + 1, y - 1)) {
+        walkable.push_back(new PathNode(x + 1, y - 1, goalX, goalY));
     }
 
     if (down && left && !this->field(x - 1, y - 1)) {
         walkable.push_back(new PathNode(x - 1, y - 1, goalX, goalY));
     }
 
-    if (down && right && !this->field(x + 1, y - 1)) {
-        walkable.push_back(new PathNode(x + 1, y - 1, goalX, goalY));
+    if (down && right && !this->field(x - 1, y + 1)) {
+        walkable.push_back(new PathNode(x - 1, y + 1, goalX, goalY));
     }
 
     return walkable;
