@@ -24,16 +24,19 @@ using namespace cv;
 using namespace std;
 
 class Measurement {
-  public:
+  private:
     bool invalid;
+
+  public:
     Particle position;
     Particle measurement;
 
     Measurement() {
-      invalid = true;
+      this->invalid = true;
     }
 
     Measurement(Particle p, Particle m) {
+      this->invalid = false;
       this->position    = p;
       this->measurement = m;
     };
@@ -58,7 +61,6 @@ class Camera {
 
     // OpenCV webcam video capture
     VideoCapture *videoCapture;
-    
 };
 
 
