@@ -120,6 +120,19 @@ int IRSensors::parGetIndex(vector<Particle> parts, Particle part)
     return -1;
 }
 
+vector<Particle> IRSensors::getObstaclePosition(Particle robotPos)
+{
+    vector<Particle> obstacles = this->getObstacles();
+
+    for (int i = 0; i < obstacles.size(); i++) {
+        printf("spot obstacle at (%f, %f)\n", obstacles.at(i).x(), obstacles.at(i).y());
+        obstacles.at(i).rotate(robotPos.theta());
+        obstacles.at(i).move(robotPos.x(), robotPos.y(), 0.0);
+    }
+
+    return obstacles;
+}
+
 IRSensors::~IRSensors(void)
 {
     delete this->irProxy;
