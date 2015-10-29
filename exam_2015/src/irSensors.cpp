@@ -11,6 +11,9 @@ IRSensors::IRSensors(PlayerCc::PlayerClient *robot)
     this->robot = robot;
     this->filterStrength = DEFAULT_FILTERSTRENGTH;
     this->irProxy = new PlayerCc::IrProxy(this->robot);
+
+    for (int i = 0; i < this->filterStrength; i++)
+        this->robot->Read();
 }
 
 IRSensors::IRSensors(PlayerCc::PlayerClient *robot, unsigned int filterStrength)
@@ -18,6 +21,9 @@ IRSensors::IRSensors(PlayerCc::PlayerClient *robot, unsigned int filterStrength)
     this->robot = robot;
     this->filterStrength = filterStrength;
     this->irProxy = new PlayerCc::IrProxy(this->robot);
+
+    for (int i = 0; i < this->filterStrength; i++)
+        this->robot->Read();
 }
 
 vector<Particle> IRSensors::getObstacles(void)
