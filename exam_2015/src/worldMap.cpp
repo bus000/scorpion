@@ -1,17 +1,18 @@
 #include "worldMap.hpp"
 #include <cstring>
 #include <cassert>
+#include <iostream>
 
-WorldMap::WorldMap(double width, double height, int numSqWidth, int numSqHeight){
-    _width = width;
-    _height = height;
+WorldMap::WorldMap(int numSqWidth, int numSqHeight, int sqSize){
+    _width = numSqWidth*sqSize;
+    _height = numSqHeight*sqSize;
     _numSqWidth = numSqWidth;
     _numSqHeight = numSqHeight;
 
-    sqWidth = width/(double)numSqWidth;
-    sqHeight = height/(double)numSqHeight;
+    _sqSize = sqSize;
 
     map = new bool[numSqWidth*numSqHeight];
+    
     clear();
 }
 
@@ -30,7 +31,8 @@ void WorldMap::field(int col, int row, bool mark){
 bool& WorldMap::field(int col, int row){
     assert(col < _numSqWidth);
     assert(row < _numSqHeight);
-    return map[(col*_numSqWidth)+row];
+
+    return map[(col*_numSqHeight)+row];
 }
 
 bool* WorldMap::operator[] (int col){
@@ -50,24 +52,21 @@ int WorldMap::numSquareWidth(){
 }
 
 int WorldMap::numSquareHeight(){
-    return sqHeight;
-}
-
-int WorldMap::squareWidth(){
-    return sqWidth;
-}
-
-int WorldMap::squareHeight(){
     return _numSqHeight;
 }
+
+int WorldMap::squareSize(){
+    return _sqSize;
+}
+
 int WorldMap::getRowFromY(double y){
-    double row = y/sqHeight;
-    return (int)row;
+    int row = y/_sqSize;
+    return row;
 }
 
 int WorldMap::getColFromX(double x){
-    double col = x/sqWidth;
-    return (int)col;
+    int col = x/_sqSize;
+    return col;
 }
 
 bool& WorldMap::fieldAt(double x, double y){

@@ -4,7 +4,7 @@
 
 class WorldMap {
 public:
-    WorldMap(double width, double height, int numSqWidth, int numSqHeight);
+    WorldMap(int numSqWidth, int numSqHeight, int sqSize);
     ~WorldMap();
     void field(int col, int row, bool mark);
     bool& field(int col, int row);
@@ -15,8 +15,7 @@ public:
     bool& fieldAt(double x, double y);
     void clear();
 
-    int squareWidth();
-    int squareHeight();
+    int squareSize();
     int numSquareWidth();
     int numSquareHeight();
     double width();
@@ -25,11 +24,9 @@ public:
 private:
     bool *map;
 
-    double sqWidth;
-    double sqHeight;
-
-    double _width;
-    double _height;
+    int _sqSize;
+    int _width;
+    int _height;
     int _numSqWidth;
     int _numSqHeight;
 };
