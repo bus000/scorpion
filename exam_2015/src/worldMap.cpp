@@ -94,6 +94,15 @@ void WorldMap::print() {
         printf("\n");
     }
 }
+
+void fieldCM(double x, double y, bool mark) {
+    int x_pos = this->getColFromX(x);
+    int y_pos = this->getRowFromY(y);
+
+    if (x_pos < this->_numSqWidth && y_pos < this->_numSqHeight)
+        this->field(x_pos, y_pos, mark);
+}
+
 //                PATH-FINDING                //
 // ------******------******------******------ //
 
