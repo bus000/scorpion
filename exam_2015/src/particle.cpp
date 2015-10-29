@@ -10,8 +10,12 @@ Particle::Particle(double x, double y, double theta, double weight) {
 }
 
 void Particle::rotate(double delta){
-    _x = _x * cos(delta) - _y * sin(delta);
-    _y = _x * sin(delta) + _y * cos(delta);
+    Particle tmp = Particle::createUnit(this->angle() + delta);
+    tmp.scale(this->length());
+    this->_x = tmp._x;
+    this->_y = tmp._y;
+    //_x = _x * cos(delta) - _y * sin(delta);
+    //_y = _x * sin(delta) + _y * cos(delta);
 }
 
 void Particle::move(double x, double y, double theta){
