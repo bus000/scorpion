@@ -193,6 +193,14 @@ vector<Particle> WorldMap::findPath( Particle &start
             NULL
             );
 
+    if (startNode->x() == goalX && startNode->y() == goalY) {
+        return vector<Particle>();
+    }
+
+    if (this->field(startNode->x(), startNode->y())) {
+        this->field(startNode->x(), startNode->y(), false);
+    }
+
     cout << "Finding path from (" << startNode->x() << ", "
                                   << startNode->y() << ") "
          << "to (" << goalX << ", " << goalY << ")" << endl;
