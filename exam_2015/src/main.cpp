@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
         vector<Particle> obstacles = sensors.getObstaclePosition(curPos);
         for (int i = 0; i < obstacles.size(); i++) {
             Particle obstacle = obstacles.at(i);
-            map.fieldCM(obstacle.x(), obstacle.y(), true);
+            map.markAround(curPos, obstacle);
         }
 
         vector<Particle> path = map.findPath(curPos, goal);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
             obstacles = sensors.getObstaclePosition(curPos);
             for (int i = 0; i < obstacles.size(); i++) {
                 Particle obstacle = obstacles.at(i);
-                map.markAround(curPos, obstacle, true);
+                map.markAround(curPos, obstacle);
             }
 
             /* Calculate new path. */

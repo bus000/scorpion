@@ -38,14 +38,6 @@ void WorldMap::field(int col, int row, bool mark){
 }
 
 bool& WorldMap::field(int col, int row){
-    if (col > _numSqWidth  ||
-        row > _numSqHeight ||
-        col < 0 ||
-        row < 0) {
-      cout << "Field out of bounds" << endl;
-      return true;
-    }
-
     return map[(col*_numSqWidth)+row];
 }
 
@@ -112,7 +104,7 @@ void WorldMap::markAround(Particle robot, Particle obstacle) {
     int robY = this->getRowFromY(robot.y());
 
     if (obsX == robX && obsY == robY) {
-        obstacle.move(-robot.x(), -robot.y()); 
+        obstacle.move(-robot.x(), -robot.y(), 0.0);
 
         bool side = abs(obstacle.y()) > abs(obstacle.x());
 
@@ -120,7 +112,7 @@ void WorldMap::markAround(Particle robot, Particle obstacle) {
             if (obstacle.y() > 0)
                 this->field(robX, robY + 1, true);
             else
-                this->field(robX, roby - 1, true);
+                this->field(robX, robY - 1, true);
         }
         else {
             if (obstacle.x() > 0)
