@@ -89,6 +89,34 @@ void WorldMap::print() {
         cout << endl;
     }
 }
+
+void WorldMap::print(vector<Particle> &path) {
+    for (int y = 0; y < this->numSquareHeight(); y++) {
+        for (int x = 0; x < this->numSquareWidth(); x++) {
+            bool onPath = false;
+
+            for (int i = 0; i < path.size(); i++) {
+                if (this->getColFromX(path[i].x()) == x &&
+                    this->getRowFromY(path[i].y()) == y) {
+                    onPath = true;
+                    break;
+                };
+             
+            }
+
+            if (onPath) {
+                cout << " * ";
+            }
+            else if (field(x, y))
+                cout << " @ ";
+            else
+                cout << " . ";
+        }
+
+        cout << endl;
+    }
+}
+
 //                PATH-FINDING                //
 // ------******------******------******------ //
 
@@ -164,6 +192,10 @@ vector<Particle> WorldMap::findPath( Particle &start
             goalY,
             NULL
             );
+
+    cout << "Finding path from (" << startNode->x() << ", "
+                                  << startNode->y() << ") "
+         << "to (" << goalX << ", " << goalY << ")" << endl;
 
     PathNode *goalNode;
 
