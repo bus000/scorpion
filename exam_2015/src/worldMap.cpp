@@ -1,6 +1,7 @@
 #include "worldMap.hpp"
 #include <cstring>
 #include <cassert>
+#include <stdio.h>
 
 WorldMap::WorldMap(double width, double height, int numSqWidth, int numSqHeight){
     _width = width;
@@ -65,4 +66,24 @@ int WorldMap::getColFromX(double x){
 
 bool& WorldMap::fieldAt(double x, double y){
     return field(getColFromX(x), getRowFromY(y));
+}
+
+void WorldMap::print() {
+    for (int i = 0; i < (this->_width * 2) + 2; i++)
+        putchar('-');
+    putchar('\n');
+
+    for (int x = 0; x < this->_width; x++) {
+        putchar('|');
+        for (int y = 0; y < this->_height; y++) {
+            if (fieldAt(x, y))
+                printf("X|");
+            else
+                printf(" |");
+        }
+        printf("\n");
+        for (int i = 0; i < (this->_width * 2) + 2; i++)
+            putchar('-');
+        printf("\n");
+    }
 }

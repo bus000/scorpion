@@ -14,6 +14,7 @@ public:
     int getColFromX(double x);
     bool& fieldAt(double x, double y);
     void clear();
+    void print();
 
     int squareWidth();
     int squareHeight();
