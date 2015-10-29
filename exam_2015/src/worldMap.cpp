@@ -52,7 +52,7 @@ int WorldMap::numSquareWidth(){
 }
 
 int WorldMap::numSquareHeight(){
-    return sqHeight;
+    return _numSqHeight;
 }
 
 int WorldMap::squareWidth(){
@@ -60,8 +60,9 @@ int WorldMap::squareWidth(){
 }
 
 int WorldMap::squareHeight(){
-    return _numSqHeight;
+    return sqHeight;
 }
+
 int WorldMap::getRowFromY(double y){
     double row = y/sqHeight;
     return (int)row;
@@ -77,22 +78,15 @@ bool& WorldMap::fieldAt(double x, double y){
 }
 
 void WorldMap::print() {
-    for (int i = 0; i < (this->_numSqWidth * 2) + 2; i++)
-        putchar('-');
-    putchar('\n');
-
-    for (int x = 0; x < this->_numSqWidth; x++) {
-        putchar('|');
-        for (int y = 0; y < this->_numSqHeight; y++) {
-            if (fieldAt(x, y))
-                printf("X|");
+    for (int y = 0; y < this->numSquareHeight(); y++) {
+        for (int x = 0; x < this->numSquareWidth(); x++) {
+            if (field(x, y))
+                cout << " X ";
             else
-                printf(" |");
+                cout << " . ";
         }
-        printf("\n");
-        for (int i = 0; i < (this->_numSqWidth* 2) + 2; i++)
-            putchar('-');
-        printf("\n");
+
+        cout << endl;
     }
 }
 //                PATH-FINDING                //
@@ -254,11 +248,13 @@ vector<Particle> WorldMap::findPath( Particle &start
 
         result.push_back(p);
 
-          root = root->parent();
+        root = root->parent();
     }
 
     // The path comes out in reverse, unreverse it
     reverse(result.begin(), result.end());
+
+    result.erase(result.begin());
 
     // Cleanup
     for (int i=0; i<closed.size(); i++) delete closed[i];
