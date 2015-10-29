@@ -12,6 +12,7 @@ public:
     void normalize();
     double length();
     double angle();
+    double angleBetween(Particle *par);
 
     //Setters
     void x(double newX);

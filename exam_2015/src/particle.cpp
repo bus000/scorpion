@@ -86,3 +86,11 @@ double Particle::weight(){
 double Particle::angle(){
     return atan2(_y, _x);
 }
+
+double Particle::angleBetween(Particle *par)
+{
+    double dot = this->_x * par->_x + this->_y * par->_y;
+    double det = this->_x * par->_y - this->_y * par->_x;
+
+    return atan2(det, dot);
+}
