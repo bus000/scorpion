@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
         // Find obstacles
         updateMap(sensors, map, robotPos);
 
+        path.clear();
         // Calculate new path
         path = map.findPath(robotPos, goal);
 

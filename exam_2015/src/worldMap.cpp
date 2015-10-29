@@ -34,7 +34,7 @@ void WorldMap::field(int col, int row, bool mark){
       return;
     }
 
-    cout << "Tile (" << col << ", " << crow << ") marked" << endl;
+    cout << "Tile (" << col << ", " << row << ") marked" << endl;
     field(col, row) = mark;
 }
 
