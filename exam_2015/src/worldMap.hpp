@@ -53,7 +53,7 @@ public:
     bool& fieldAt(double x, double y);
     void clear();
     void print();
-    void print(vector<Particle> &path);
+    void print(vector<Particle> &path, Particle curPos);
 
     int squareWidth();
     int squareHeight();
