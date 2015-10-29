@@ -90,9 +90,28 @@ void WorldMap::print() {
     }
 }
 
-void WorldMap::print(vector<Particle> &path) {
+void WorldMap::fieldCM(double x, double y, bool mark) {
+    int x_pos = this->getColFromX(x);
+    int y_pos = this->getRowFromY(y);
+
+    printf("setting obstacle at (%d, %d)\n", x_pos, y_pos);
+
+    if (x_pos < this->_numSqWidth && y_pos < this->_numSqHeight)
+        this->field(x_pos, y_pos, mark);
+    else
+        fprintf(stderr, "err: setting object outside map (%d, %d)\n", x_pos,
+                y_pos);
+}
+
+void WorldMap::print(vector<Particle> &path, Particle curPos) {
     for (int y = 0; y < this->numSquareHeight(); y++) {
         for (int x = 0; x < this->numSquareWidth(); x++) {
+            if (this->getColFromX(curPos.x()) == x &&
+                    this->getRowFromY(curPos.y()) == y) {
+                cout << " R ";
+                continue;
+            }
+
             bool onPath = false;
 
             for (int i = 0; i < path.size(); i++) {
@@ -101,7 +120,6 @@ void WorldMap::print(vector<Particle> &path) {
                     onPath = true;
                     break;
                 };
-             
             }
 
             if (onPath) {
@@ -248,7 +266,7 @@ vector<Particle> WorldMap::findPath( Particle &start
                 delete tryOut;
                 continue;
             }
-            
+
             tryOut->giveParent(current);
             bool inOpen = false;
 
