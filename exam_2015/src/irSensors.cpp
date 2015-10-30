@@ -3,6 +3,7 @@
 #include "util.hpp"
 #include <vector>
 #include <libplayerc++/playerc++.h>
+#include <math.h>
 
 using namespace std;
 
@@ -38,22 +39,15 @@ vector<Particle> IRSensors::getObstacles(void)
     }
 
     for (int i = 0; i < SENSOR_NUM; i++) {
-        sensorData[i] /= (double) this->filterStrength;
-        if (sensorData[i] > CUTOFF)
+        double average = sensorData[i] / this->filterStrength;
+        if (average > CUTOFF)
             continue;
 
-        int index;
-        int cm = sensorValueToCM(sensorData[i]);
+        double distance = sensorValueToCM(average);
         Particle angle = this->sensorAngle(i);
-        angle.scale(cm);
+        angle.scale(distance);
 
-        if ((index = this->parGetIndex(result, angle)) != -1) {
-            Particle par = result.at(index);
-            result.at(index).x((par.x() + angle.x()) / 2);
-            result.at(index).y((par.y() + angle.y()) / 2);
-        } else {
-            result.push_back(angle);
-        }
+        result.push_back(angle);
     }
 
     return result;
@@ -71,31 +65,31 @@ Particle IRSensors::sensorAngle(int sensor)
 {
     switch (sensor) {
     case IrEastNorthEast:
-        return Particle(0.7071067, 0.7071067);
+        return Particle(sin(20.0 * M_PI / 180.0), cos(20.0 * M_PI / 180.0));
     case IrWestNorthWest:
-        return Particle(0.7071067, -0.7071067);
+        return Particle(sin(160.0 * M_PI / 180.0), cos(160.0 * M_PI / 180.0));
     case IrNorth:
-        return Particle(1.0, 0.0);
+        return Particle(sin(90.0 * M_PI / 180.0), cos(90.0 * M_PI / 180.0));
     case IrNorthEast:
-        return Particle(0.5, 0.866025);
+        return Particle(sin(45.0 * M_PI / 180.0), cos(45.0 * M_PI / 180.0));
     case IrNorthWest:
-        return Particle(0.5, -0.866025);
+        return Particle(sin(135.0 * M_PI / 180.0), cos(135.0 * M_PI / 180.0));
     case IrNarrowNorthNorthWest:
-        return Particle(1.0, 0.0);
+        return Particle(sin(105.0 * M_PI / 180.0), cos(105.0 * M_PI / 180.0));
     case IrNarrowNorthNorthEast:
-        return Particle(1.0, 0.0);
+        return Particle(sin(75.0 * M_PI / 180.0), cos(75.0 * M_PI / 180.0));
     case IrCenterNorthNorthWest:
-        return Particle(0.5, -0.866025);
+        return Particle(sin(105.0 * M_PI / 180.0), cos(105.0 * M_PI / 180.0));
     case IrCenterNorthNorthEast:
-        return Particle(0.5, 0.866025);
+        return Particle(sin(75.0 * M_PI / 180.0), cos(75.0 * M_PI / 180.0));
     case IrWest:
-        return Particle(0.0, -1.0);
+        return Particle(sin(180.0 * M_PI / 180.0), cos(180.0 * M_PI / 180.0));
     case IrEast:
-        return Particle(0.0, 1.0);
+        return Particle(sin(0.0 * M_PI / 180.0), cos(0.0 * M_PI / 180.0));
     case IrSouthLeft:
-        return Particle(-1.0, 0.0);
+        return Particle(sin(-90.0 * M_PI / 180.0), cos(-90.0 * M_PI / 180.0));
     case IrSouthRight:
-        return Particle(-1.0, 0.0);
+        return Particle(sin(-90.0 * M_PI / 180.0), cos(-90.0 * M_PI / 180.0));
     default:
         fprintf(stderr, "err: unknown IR sensor with ID %d\n", sensor);
         return Particle(0.0, 0.0);
@@ -124,7 +118,6 @@ vector<Particle> IRSensors::getObstaclePosition(Particle robotPos)
     vector<Particle> obstacles = this->getObstacles();
 
     for (int i = 0; i < obstacles.size(); i++) {
-        printf("spot obstacle at (%f, %f)\n", obstacles.at(i).x(), obstacles.at(i).y());
         obstacles.at(i).rotate(robotPos.theta());
         obstacles.at(i).move(robotPos.x(), robotPos.y(), 0.0);
     }
