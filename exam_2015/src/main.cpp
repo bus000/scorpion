@@ -33,9 +33,6 @@ int main(int argc, char *argv[])
     vector<Particle> path = map.findPath(robotPos, goal);
 
     while (path.size() > 0) {
-        robotPos.x(driveCtl.getXPos());
-        robotPos.y(driveCtl.getYPos());
-
         // Find obstacles
         updateMap(sensors, map, robotPos);
 
@@ -44,14 +41,15 @@ int main(int argc, char *argv[])
         path = map.findPath(robotPos, goal);
 
         Particle nextStep = path.at(0);
-        driveCtl.goToPos(nextStep.x(), nextStep.y());
-
-        /* Update robot position. */
-        robotPos.x(driveCtl.getXPos());
-        robotPos.y(driveCtl.getYPos());
-
         cout << "\033[2J\033[1;1H";
         map.print(path, robotPos);
+        driveCtl.goToPos(nextStep.x(), nextStep.y());
+
+        robotPos.x(driveCtl.getXPos());
+        robotPos.y(driveCtl.getYPos());
+        robotPos.theta(driveCtl.getYaw());
+
+        //printf("robot position (%f, %f) angle %f\n", )
     }
 
     return EXIT_SUCCESS;
