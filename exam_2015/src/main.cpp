@@ -35,26 +35,28 @@ int main(int argc, char *argv[])
     Particle goal(driveCtl.getXPos() + 250, driveCtl.getYPos(), 0.0);
     Particle robotPos(driveCtl.getXPos(), driveCtl.getYPos(), 0.0);
 
+    updateMap(sensors, map, robotPos);
     vector<Particle> path = map.findPath(robotPos, goal);
     cv::namedWindow("window");
+    map.print(path, robotPos);
 
     while (path.size() > 0) {
         // Find obstacles
-        updateMap(sensors, map, robotPos);
-
-        path.clear();
-        // Calculate new path
-        path = map.findPath(robotPos, goal);
-
         Particle nextStep = path.at(0);
         driveCtl.goToPos(nextStep.x(), nextStep.y());
 
         robotPos.x(driveCtl.getXPos());
         robotPos.y(driveCtl.getYPos());
         robotPos.theta(driveCtl.toRadians(driveCtl.getYaw()));
+        map.print(path, robotPos);
         cv::Mat img = presenter.draw(robotPos);
         imshow("window", img);
         cv::waitKey(10);
+
+        updateMap(sensors, map, robotPos);
+        path.clear();
+        // Calculate new path
+        path = map.findPath(robotPos, goal);
     }
 
     return EXIT_SUCCESS;
