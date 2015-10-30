@@ -117,8 +117,8 @@ double Particle::angleBetween(Particle *par)
 
 vector<Particle> interpolatePath(vector<Particle> &path, int steps){
     vector<Particle> interpolated;
-   
-    // Turning each step into 0 steps yields the empty path 
+
+    // Turning each step into 0 steps yields the empty path
     if (steps == 0)
       return interpolated;
 
@@ -130,7 +130,7 @@ vector<Particle> interpolatePath(vector<Particle> &path, int steps){
 
         for (int j = 0; j < steps; j++) {
             Particle diff = next;
-            diff.sub(current);      
+            diff.sub(current);
 
             diff.scale((double)j * factor);
 
@@ -141,8 +141,8 @@ vector<Particle> interpolatePath(vector<Particle> &path, int steps){
             interpolated.push_back(step);
         }
     }
-   
-    // Add the last step of the original path to the new path 
+
+    // Add the last step of the original path to the new path
     if (path.size() > 0)
       interpolated.push_back(path[path.size() - 1]);
 
