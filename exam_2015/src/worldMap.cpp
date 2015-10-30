@@ -13,7 +13,7 @@ WorldMap::WorldMap(int numSqWidth, int numSqHeight, int sqSize){
     _sqSize = sqSize;
 
     map = new bool[numSqWidth*numSqHeight];
-    
+
     clear();
 }
 
@@ -98,9 +98,9 @@ void WorldMap::print() {
 void WorldMap::markFrom(Particle robot, Particle obstacle) {
   int robX = this->getColFromX(robot.x());
   int robY = this->getRowFromY(robot.y());
- 
+
   // Keep increasing the distance to the obstacle until
-  // it is not in the same square as the robot. 
+  // it is not in the same square as the robot.
   while (robX == this->getColFromX(obstacle.x()) &&
          robY == this->getRowFromY(obstacle.y())) {
     obstacle.sub(robot);

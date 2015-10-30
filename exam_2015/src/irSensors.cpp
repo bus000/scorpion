@@ -39,7 +39,7 @@ vector<Particle> IRSensors::getObstacles(void)
     }
 
     for (int i = 0; i < SENSOR_NUM; i++) {
-        double average = sensorData[i] / this->filterStrength;
+        double average = sensorData[i] / (double) this->filterStrength;
         if (average > CUTOFF)
             continue;
 
