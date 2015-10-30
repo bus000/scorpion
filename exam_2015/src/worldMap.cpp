@@ -4,16 +4,16 @@
 #include <stdio.h>
 #include <iostream>
 
-WorldMap::WorldMap(double width, double height, int numSqWidth, int numSqHeight){
-    _width = width;
-    _height = height;
+WorldMap::WorldMap(int numSqWidth, int numSqHeight, int sqSize){
+    _width = numSqWidth*sqSize;
+    _height = numSqHeight*sqSize;
     _numSqWidth = numSqWidth;
     _numSqHeight = numSqHeight;
 
-    sqWidth = width/(double)numSqWidth;
-    sqHeight = height/(double)numSqHeight;
+    _sqSize = sqSize;
 
     map = new bool[numSqWidth*numSqHeight];
+    
     clear();
 }
 
@@ -38,7 +38,10 @@ void WorldMap::field(int col, int row, bool mark){
 }
 
 bool& WorldMap::field(int col, int row){
-    return map[(col*_numSqWidth)+row];
+    assert(col < _numSqWidth);
+    assert(row < _numSqHeight);
+
+    return map[(col*_numSqHeight)+row];
 }
 
 bool* WorldMap::operator[] (int col){
@@ -61,20 +64,18 @@ int WorldMap::numSquareHeight(){
     return _numSqHeight;
 }
 
-int WorldMap::squareWidth(){
-    return sqWidth;
-}
-
-int WorldMap::squareHeight(){
-    return sqHeight;
+int WorldMap::squareSize(){
+    return _sqSize;
 }
 
 int WorldMap::getRowFromY(double y){
-    return (int)(0.5 + y / squareHeight());
+    int row = y/_sqSize;
+    return row;
 }
 
 int WorldMap::getColFromX(double x){
-    return (int)(0.5 + x / squareHeight());
+    int col = x/_sqSize;
+    return col;
 }
 
 bool& WorldMap::fieldAt(double x, double y){
@@ -103,7 +104,7 @@ void WorldMap::markFrom(Particle robot, Particle obstacle) {
   while (robX == this->getColFromX(obstacle.x()) &&
          robY == this->getRowFromY(obstacle.y())) {
     obstacle.sub(robot);
-    obstacle.addLength((double)this->squareWidth());
+    obstacle.addLength((double)this->squareSize());
     obstacle.add(robot);
   }
 
@@ -313,8 +314,8 @@ vector<Particle> WorldMap::findPath( Particle &start
     while (root != NULL) {
         // cout << "(" << root->x() << ", " << root->y() << ")" << endl;
 
-        Particle p( this->squareWidth()  * root->x()
-                  , this->squareHeight() * root->y());
+        Particle p( this->squareSize()  * root->x()
+                  , this->squareSize() * root->y());
 
         result.push_back(p);
 
