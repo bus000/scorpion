@@ -48,6 +48,7 @@ vector<Particle> IRSensors::getObstacles(void)
         Particle position = this->sensorPosition(i);
         angle.scale(distance);
         angle.move(position.x(), position.y(), 0.0);
+        angle.addLength(-10.0);
 
         result.push_back(angle);
     }
