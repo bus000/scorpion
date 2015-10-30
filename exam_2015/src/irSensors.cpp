@@ -102,31 +102,31 @@ Particle IRSensors::sensorPosition(int sensor)
 {
     switch (sensor) {
     case IrEastNorthEast:
-        return Particle(10.0, 0.0);
+        return Particle(18.0,-8.0);
     case IrWestNorthWest:
-        return Particle(10.0, 0.0);
+        return Particle(18.0, 8.0);
     case IrNorth:
-        return Particle(10.0, 0.0);
+        return Particle(8.0, 0.0);
     case IrNorthEast:
-        return Particle(10.0, 0.0);
+        return Particle(13.0, 6.5);
     case IrNorthWest:
-        return Particle(10.0, 0.0);
+        return Particle(13.0,-6.5);
     case IrNarrowNorthNorthWest:
-        return Particle(0.0, 10.0);
+        return Particle(6.5, -18.0);
     case IrNarrowNorthNorthEast:
-        return Particle(0.0, 10.0);
+        return Particle(6.5, 18.0);
     case IrCenterNorthNorthWest:
-        return Particle(0.0, -10.0);
+        return Particle(-4.0, -19.0);
     case IrCenterNorthNorthEast:
-        return Particle(0.0, -10.0);
+        return Particle(-4.0, 19.0);
     case IrWest:
-        return Particle(-5.0, 0.0);
+        return Particle(-15.0, -4.0);
     case IrEast:
-        return Particle(-5.0, 0.0);
+        return Particle(-15.0, 4.0);
     case IrSouthLeft:
-        return Particle(0.0, -5.0);
+        return Particle(-10.0, -7.5);
     case IrSouthRight:
-        return Particle(0.0, 5.0);
+        return Particle(-10.0, 7.5);
     default:
         fprintf(stderr, "err: unknown IR sensor with ID %d\n", sensor);
         return Particle(0.0, 0.0);
