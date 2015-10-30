@@ -17,7 +17,8 @@ void updateMap(IRSensors &sensors, WorldMap &map, Particle robot) {
 
 int main(int argc, char *argv[])
 {
-    PlayerCc::PlayerClient robot("192.168.240.129");
+    PlayerCc::PlayerClient robot("192.168.100.253");
+    //PlayerCc::PlayerClient robot("192.168.240.129");
     PlayerCc::Position2dProxy position(&robot);
     robot.SetDataMode(PLAYER_DATAMODE_PULL);
     robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
@@ -54,6 +55,7 @@ int main(int argc, char *argv[])
         /* Update robot position. */
         robotPos.x(driveCtl.getXPos());
         robotPos.y(driveCtl.getYPos());
+        robotPos.theta(driveCtl.toRadians(driveCtl.getYaw()));
 
         cv::Mat img = presenter.draw(robotPos);
         imshow("window", img);
