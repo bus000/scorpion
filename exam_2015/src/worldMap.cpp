@@ -311,7 +311,7 @@ vector<Particle> WorldMap::findPath( Particle &start
 
     PathNode *root = goalNode;
 
-    double offset = (double)this->squareSize / 2.0;
+    double offset = (double)this->squareSize() / 2.0;
 
     while (root != NULL) {
         // cout << "(" << root->x() << ", " << root->y() << ")" << endl;
