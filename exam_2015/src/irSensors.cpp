@@ -100,7 +100,37 @@ Particle IRSensors::sensorAngle(int sensor)
 
 Particle IRSensors::sensorPosition(int sensor)
 {
-    return Particle(0.0, 0.0);
+    switch (sensor) {
+    case IrEastNorthEast:
+        return Particle(10.0, 0.0);
+    case IrWestNorthWest:
+        return Particle(10.0, 0.0);
+    case IrNorth:
+        return Particle(10.0, 0.0);
+    case IrNorthEast:
+        return Particle(10.0, 0.0);
+    case IrNorthWest:
+        return Particle(10.0, 0.0);
+    case IrNarrowNorthNorthWest:
+        return Particle(0.0, 10.0);
+    case IrNarrowNorthNorthEast:
+        return Particle(0.0, 10.0);
+    case IrCenterNorthNorthWest:
+        return Particle(0.0, -10.0);
+    case IrCenterNorthNorthEast:
+        return Particle(0.0, -10.0);
+    case IrWest:
+        return Particle(-5.0, 0.0);
+    case IrEast:
+        return Particle(-5.0, 0.0);
+    case IrSouthLeft:
+        return Particle(0.0, -5.0);
+    case IrSouthRight:
+        return Particle(0.0, 5.0);
+    default:
+        fprintf(stderr, "err: unknown IR sensor with ID %d\n", sensor);
+        return Particle(0.0, 0.0);
+    }
 }
 
 int IRSensors::parGetIndex(vector<Particle> parts, Particle part)
