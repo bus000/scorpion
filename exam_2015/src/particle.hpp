@@ -1,6 +1,9 @@
-#include <vector>
 #ifndef PARTICLE_H
 #define PARTICLE_H
+
+#include <vector>
+
+using namespace std;
 
 class Particle {
 public:
@@ -32,5 +35,7 @@ private:
     double _x, _y, _theta, _weight;
     void overRunTheta();
 };
+
+vector<Particle> interpolatePath(vector<Particle> &path, int steps);
 
 #endif
