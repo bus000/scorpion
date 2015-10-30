@@ -6,8 +6,8 @@ OBJECTS		= $(SOURCE:%.cpp=%.o)
 $(MainExec): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(LIBS) -o ../$(MainExec) $(OBJECTS)
 
-$(OBJECTS): $(SOURCE)
-	$(CXX) $(CXXFLAGS) -c $?
+%.o: %.c
+	$(CXX) -o $@  $(CXXFLAGS) -c $<
 
 clean:
 	rm -f *.o ../$(MainExec)
