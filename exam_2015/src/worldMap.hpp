@@ -9,7 +9,7 @@
 
 #define STRAIGHT_COST 10
 #define DIAGONAL_COST 14
-#define BESIDE_COST   10
+#define BESIDE_COST   100
 
 using namespace std;
 
@@ -22,14 +22,14 @@ public:
             , int y
             , int goalX
             , int goalY
-            , WorldMap &map);
+            , WorldMap *map);
 
     PathNode( int x
             , int y
             , int goalX
             , int goalY
             , PathNode *parent
-            , WorldMap &map);
+            , WorldMap *map);
 
     PathNode *parent() { return this->_parent; };
 
@@ -48,7 +48,7 @@ private:
     int _h;
 
     void calculateG();
-    int heuristic(int goalX, int goalY, WorldMap &map);
+    int heuristic(int goalX, int goalY, WorldMap *map);
 };
 
 class WorldMap {
