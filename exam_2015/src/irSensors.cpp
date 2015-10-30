@@ -45,6 +45,8 @@ vector<Particle> IRSensors::getObstacles(void)
 
         double distance = sensorValueToCM(average);
         Particle angle = this->sensorAngle(i);
+        Particle position = this->sensorPosition(i);
+        angle.move(position.x(), position.y(), 0.0);
         angle.scale(distance);
 
         result.push_back(angle);
@@ -98,7 +100,7 @@ Particle IRSensors::sensorAngle(int sensor)
 
 Particle IRSensors::sensorPosition(int sensor)
 {
-
+    return Particle(0.0, 0.0);
 }
 
 int IRSensors::parGetIndex(vector<Particle> parts, Particle part)
