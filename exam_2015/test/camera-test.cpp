@@ -1,7 +1,7 @@
-#include "camera.hpp"
-#include <iostream>
+//#include "camera.hpp"
+//#include <iostream>
 
-int main() {
+//int main() {
   /* MACBOOK PRO WEBCAM:
    *  camera fx: 1063.255997
    *  camera fy: 1071.611217
@@ -9,11 +9,11 @@ int main() {
    *  camera cy: 325.583094
    */
 
-  Camera camera(1063.256, 1071.611, 680.882);
-  
-  while(true) {
-     camera.measure();
-  }
+  //Camera camera(1063.256, 1071.611, 680.882);
 
-  return 0;
-}
+  //while(true) {
+     //camera.measure();
+  //}
+
+  //return 0;
+//}

@@ -9,13 +9,11 @@ TARGETS   =$(SOURCES:.cpp=)$
 
 all: $(TARGETS)
 
-camera: camera-test.cpp
-	$(CXX) $(CXXFLAGS) $(LIBS) -o camera -I../src/ 
+#camera: camera-test.cpp
+#	$(CXX) $(CXXFLAGS) $(LIBS) -o camera -I../src/ 
 
 $(TARGETS): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $@.o $(EXOBJECTS) -o $@ $(LIBS)
-	./$@ > $@_output.txt
-	diff $@_correct.txt $@_output.txt | colordiff
 
 %.o: %.c
 	$(CXX) -o $@ $(CXXFLAGS) -c $<
