@@ -39,9 +39,6 @@ int main(int argc, char *argv[])
     cv::namedWindow("window");
 
     while (path.size() > 0) {
-        robotPos.x(driveCtl.getXPos());
-        robotPos.y(driveCtl.getYPos());
-
         // Find obstacles
         updateMap(sensors, map, robotPos);
 
@@ -50,17 +47,17 @@ int main(int argc, char *argv[])
         path = map.findPath(robotPos, goal);
 
         Particle nextStep = path.at(0);
+        cout << "\033[2J\033[1;1H";
+        map.print(path, robotPos);
         driveCtl.goToPos(nextStep.x(), nextStep.y());
 
-        /* Update robot position. */
         robotPos.x(driveCtl.getXPos());
         robotPos.y(driveCtl.getYPos());
         robotPos.theta(driveCtl.toRadians(driveCtl.getYaw()));
-
         cv::Mat img = presenter.draw(robotPos);
         imshow("window", img);
-        cout << "\033[2J\033[1;1H";
-        map.print(path, robotPos);
+        //cout << "\033[2J\033[1;1H";
+        //map.print(path, robotPos);
         cv::waitKey(10);
     }
 
