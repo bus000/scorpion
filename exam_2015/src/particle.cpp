@@ -25,6 +25,22 @@ void Particle::move(double x, double y, double theta){
     overRunTheta();
 }
 
+void Particle::addLength(double scalar) {
+  double amount = 1 + (scalar / this->length());
+
+  this->scale(amount);
+}
+
+void Particle::add(Particle other) {
+  _x += other.x();
+  _y += other.y();
+}
+
+void Particle::sub(Particle other) {
+  _x -= other.x();
+  _y -= other.y();
+}
+
 Particle Particle::createUnit(double angle){
     Particle tmp(cos(angle), sin(angle));
     return tmp;

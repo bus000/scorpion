@@ -46,7 +46,7 @@ public:
     void field(int col, int row, bool mark);
     bool& field(int col, int row);
 
-    void markAround(Particle robot, Particle obstacle);
+    void markFrom(Particle robot, Particle obstacle);
     //[col][row]
     bool* operator[] (int col);
     int getRowFromY(double y);

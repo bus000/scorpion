@@ -7,6 +7,9 @@ public:
     Particle(double x = 0, double y = 0, double theta = 0, double weight = 0);
     void rotate(double delta);
     void move(double x, double y, double theta);
+    void addLength(double scalar);
+    void add(Particle other);
+    void sub(Particle other); 
     static Particle createUnit(double angle);
     void scale(double factor);
     void normalize();
