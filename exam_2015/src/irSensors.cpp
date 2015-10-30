@@ -96,6 +96,11 @@ Particle IRSensors::sensorAngle(int sensor)
     }
 }
 
+Particle IRSensors::sensorPosition(int sensor)
+{
+
+}
+
 int IRSensors::parGetIndex(vector<Particle> parts, Particle part)
 {
     double angleY;

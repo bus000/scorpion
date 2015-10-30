@@ -62,6 +62,7 @@ private:
     /* Private methods. */
     double sensorValueToCM(double sensorValue);
     Particle sensorAngle(int sensor);
+    Particle sensorPosition(int sensor);
     int parGetIndex(vector<Particle> parts, Particle par);
 
     /* Private variables. */
