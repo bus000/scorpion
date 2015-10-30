@@ -17,8 +17,8 @@ void updateMap(IRSensors &sensors, WorldMap &map, Particle robot) {
 
 int main(int argc, char *argv[])
 {
-    PlayerCc::PlayerClient robot("192.168.100.253");
-    //PlayerCc::PlayerClient robot("192.168.240.129");
+    //PlayerCc::PlayerClient robot("192.168.100.253");
+    PlayerCc::PlayerClient robot("192.168.240.129");
     PlayerCc::Position2dProxy position(&robot);
     robot.SetDataMode(PLAYER_DATAMODE_PULL);
     robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
@@ -47,8 +47,6 @@ int main(int argc, char *argv[])
         path = map.findPath(robotPos, goal);
 
         Particle nextStep = path.at(0);
-        cout << "\033[2J\033[1;1H";
-        map.print(path, robotPos);
         driveCtl.goToPos(nextStep.x(), nextStep.y());
 
         robotPos.x(driveCtl.getXPos());
@@ -56,8 +54,6 @@ int main(int argc, char *argv[])
         robotPos.theta(driveCtl.toRadians(driveCtl.getYaw()));
         cv::Mat img = presenter.draw(robotPos);
         imshow("window", img);
-        //cout << "\033[2J\033[1;1H";
-        //map.print(path, robotPos);
         cv::waitKey(10);
     }
 
