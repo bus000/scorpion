@@ -30,11 +30,10 @@ void WorldMap::field(int col, int row, bool mark){
         row > _numSqHeight ||
         col < 0 ||
         row < 0) {
-      cout << "Field out of bounds" << endl;
+      cout << "Field out of bounds (" << col << ", " << row << ")" << endl;
       return;
     }
 
-    cout << "Tile (" << col << ", " << row << ") marked" << endl;
     field(col, row) = mark;
 }
 
@@ -71,13 +70,11 @@ int WorldMap::squareHeight(){
 }
 
 int WorldMap::getRowFromY(double y){
-    double row = y/sqHeight;
-    return (int)row;
+    return (int)(0.5 + y / squareHeight());
 }
 
 int WorldMap::getColFromX(double x){
-    double col = x/sqWidth;
-    return (int)col;
+    return (int)(0.5 + x / squareHeight());
 }
 
 bool& WorldMap::fieldAt(double x, double y){
@@ -97,35 +94,23 @@ void WorldMap::print() {
     }
 }
 
-void WorldMap::markAround(Particle robot, Particle obstacle) {
-    int obsX = this->getColFromX(obstacle.x());
-    int obsY = this->getRowFromY(obstacle.y());
+void WorldMap::markFrom(Particle robot, Particle obstacle) {
+  int robX = this->getColFromX(robot.x());
+  int robY = this->getRowFromY(robot.y());
+ 
+  // Keep increasing the distance to the obstacle until
+  // it is not in the same square as the robot. 
+  while (robX == this->getColFromX(obstacle.x()) &&
+         robY == this->getRowFromY(obstacle.y())) {
+    obstacle.sub(robot);
+    obstacle.addLength((double)this->squareWidth());
+    obstacle.add(robot);
+  }
 
-    int robX = this->getColFromX(robot.x());
-    int robY = this->getRowFromY(robot.y());
-
-    if (obsX == robX && obsY == robY) {
-
-        obstacle.move(-robot.x(), -robot.y(), 0.0);
-
-        bool side = fabs(obstacle.y()) > fabs(obstacle.x());
-
-        if (side) {
-            if (obstacle.y() > 0)
-                this->field(robX, robY + 1, true);
-            else
-                this->field(robX, robY - 1, true);
-        }
-        else {
-            if (obstacle.x() > 0)
-                this->field(robX + 1, robY, true);
-            else
-                this->field(robX - 1, robY, true);
-        }
-    }
-    else {
-      this->field(obsX, obsY, true);
-    }
+  // Mark the tile
+  this->field( this->getColFromX(obstacle.x())
+             , this->getRowFromY(obstacle.y())
+             , true);
 }
 
 void WorldMap::print(vector<Particle> &path, Particle curPos) {
@@ -326,8 +311,10 @@ vector<Particle> WorldMap::findPath( Particle &start
     PathNode *root = goalNode;
 
     while (root != NULL) {
-        Particle p( this->squareWidth()  * root->x() + this->squareWidth()  / 2.0
-                  , this->squareHeight() * root->y() + this->squareHeight() / 2.0);
+        // cout << "(" << root->x() << ", " << root->y() << ")" << endl;
+
+        Particle p( this->squareWidth()  * root->x()
+                  , this->squareHeight() * root->y());
 
         result.push_back(p);
 
@@ -336,7 +323,6 @@ vector<Particle> WorldMap::findPath( Particle &start
 
     // The path comes out in reverse, unreverse it
     reverse(result.begin(), result.end());
-
     result.erase(result.begin());
 
     // Cleanup
