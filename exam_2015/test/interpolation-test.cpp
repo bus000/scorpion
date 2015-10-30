@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <vector>
-#include "particle.hpp"
+#include "../src/particle.hpp"
 
 using namespace std;
 
