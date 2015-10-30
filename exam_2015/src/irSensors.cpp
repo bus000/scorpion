@@ -39,22 +39,15 @@ vector<Particle> IRSensors::getObstacles(void)
     }
 
     for (int i = 0; i < SENSOR_NUM; i++) {
-        sensorData[i] /= (double) this->filterStrength;
-        if (sensorData[i] > CUTOFF)
+        double average = sensorData[i] / this->filterStrength;
+        if (average > CUTOFF)
             continue;
 
-        int index;
-        int cm = sensorValueToCM(sensorData[i]);
+        double distance = sensorValueToCM(average);
         Particle angle = this->sensorAngle(i);
-        angle.scale(cm);
+        angle.scale(distance);
 
-        if ((index = this->parGetIndex(result, angle)) != -1) {
-            Particle par = result.at(index);
-            result.at(index).x((par.x() + angle.x()) / 2);
-            result.at(index).y((par.y() + angle.y()) / 2);
-        } else {
-            result.push_back(angle);
-        }
+        result.push_back(angle);
     }
 
     return result;
