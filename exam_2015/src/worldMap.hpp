@@ -9,7 +9,7 @@
 
 #define STRAIGHT_COST 10
 #define DIAGONAL_COST 14
-#define BESIDE_COST   100
+#define BESIDE_COST   50
 
 using namespace std;
 
