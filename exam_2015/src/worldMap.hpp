@@ -77,9 +77,12 @@ public:
 
     int besideObstacle(int col, int row);
 
-    vector<Particle> findPath( Particle &start
-            , Particle &goal
-            );
+    vector<Particle> findPath( Particle &start , Particle &goal);
+
+    /* Decrease the probability of there being an object by 10% in all
+     * fields. */
+    void decreaseProb(double percent = 10.0);
+
 
 private:
     int *map;

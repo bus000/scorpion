@@ -9,9 +9,14 @@
 void updateMap(IRSensors &sensors, WorldMap &map, Particle robot) {
     vector<Particle> obstacles = sensors.getObstaclePosition(robot);
 
+    map.decreaseProb(5.0);
+
     for (int i = 0; i < obstacles.size(); i++) {
         Particle obstacle = obstacles.at(i);
-        map.markFrom(robot, obstacle);
+        Particle relativePosition(obstacle.x(), obstacle.y());
+        relativePosition.sub(robot);
+        double probability = (1.0 / relativePosition.length()) * 100.0;
+        map.markFrom(robot, obstacle, (int)probability);
     }
 }
 

@@ -21,6 +21,13 @@ WorldMap::~WorldMap(){
     delete[] map;
 }
 
+void WorldMap::decreaseProb(double percent)
+{
+    for (int x = 0; x < this->_numSqWidth; x++)
+        for (int y = 0; y < this->_numSqHeight; y++)
+            field(x, y, field(x, y) * (percent / 100.0));
+}
+
 void WorldMap::clear(){
     memset(map, 0, _numSqWidth*_numSqHeight);
 }
@@ -140,7 +147,7 @@ void WorldMap::print(vector<Particle> &path, Particle curPos) {
             else if (field(x, y) == 0)
                 cout << " . ";
             else
-                cout << field(x, y);
+                cout << " @ ";
         }
 
         cout << endl;
