@@ -74,6 +74,41 @@ int main(int argc, char *argv[])
 }
 
 //int main(int argc, char **argv){
+//    cv::namedWindow("window");
+//    std::vector<Particle> particles;
+//    WorldMap map(50, 50, 10);
+//    MapPresenter presenter(&map);
+//
+//    ParticleFilter filter(&particles, &map, 0.0,0.0);
+//    filter.addRandomParticles(100000);
+//    Camera camera(441.575145, 431.531452, 640.0);
+//    map[30][40] = true;
+//	map[0][40] = true;
+//	map[0][0] = true;
+//	map[30][0] = true;
+//
+//    while(true){
+//        Measurement meas = camera.measure(true);
+//        filter.filter(meas);
+//        cv::Mat img = presenter.draw();
+//        
+//        double rX, rY, rTheta = 0;
+//        for(int i = 0; i < particles.size(); i++){
+//            rX += particles[i].x();
+//            rY += particles[i].y();
+//            rTheta += particles[i].theta();
+//            presenter.drawRobot(img, particles[i], cv::Scalar(0x0,0x0,0xff));
+//        }
+//        rX /= (double)particles.size();
+//        rY /= (double)particles.size();
+//        rTheta /= (double)particles.size();
+//        Particle robot(rX,rY,rTheta);
+//        presenter.drawRobot(img, robot, cv::Scalar(0x0,0x0,0x00));  
+//        cv::imshow("window", img);
+//     }
+//}
+
+//int main(int argc, char **argv){
 //    WorldMap map(40, 30, 10);
 //    MapPresenter presenter(&map);
 //
