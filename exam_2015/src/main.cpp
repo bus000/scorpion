@@ -38,7 +38,13 @@ int main(int argc, char *argv[])
     robot.SetDataMode(PLAYER_DATAMODE_PULL);
     robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
 
-    WorldMap map(15, 15, 50);
+    vector<Particle> landmarks;
+    landmarks.push_back(Particle(300, 400));
+    landmarks.push_back(Particle(0, 400));
+    landmarks.push_back(Particle(0, 0));
+    landmarks.push_back(Particle(300, 0));
+
+    WorldMap map(15, 15, 50, landmarks);
     //MapPresenter presenter(&map);
     DriveCtl driveCtl(&robot, &position);
     IRSensors sensors(&robot);
