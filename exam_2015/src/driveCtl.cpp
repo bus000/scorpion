@@ -10,8 +10,8 @@ DriveCtl::DriveCtl(PlayerCc::PlayerClient *robot,
 }
 
 Particle DriveCtl::odometryParticle() {
-    usleep(100000); 
     robot->Read();
+    usleep(250000); 
     double x = positionProxy->GetXPos();
     double y = positionProxy->GetYPos();
     double t = positionProxy->GetYaw();

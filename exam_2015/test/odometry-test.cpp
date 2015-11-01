@@ -6,9 +6,12 @@ int main(int argc, char *argv[])
 {
 
     PlayerCc::PlayerClient robot("192.168.240.129");
+
     PlayerCc::Position2dProxy position(&robot);
+
     robot.SetDataMode(PLAYER_DATAMODE_PULL);
     robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
+
     DriveCtl driveCtl(&robot, &position );
    
     driveCtl.drive(100.0);
