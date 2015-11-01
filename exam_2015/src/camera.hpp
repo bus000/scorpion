@@ -25,11 +25,11 @@ using namespace std;
 
 class Measurement {
   private:
-    bool invalid;
 
   public:
     Particle position;
     Particle measurement;
+    bool invalid;
 
     Measurement() {
       this->invalid = true;

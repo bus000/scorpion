@@ -138,7 +138,7 @@ int IRSensors::parGetIndex(vector<Particle> parts, Particle part)
     for(int i = 0; i < parts.size(); i++)
     {
         cur = parts.at(i);
-        if (areSame(0.0, cur.angleBetween(&part)))
+        if (areSame(0.0, cur.angleBetween(part)))
             return i;
     }
 

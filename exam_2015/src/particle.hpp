@@ -18,7 +18,10 @@ public:
     void normalize();
     double length();
     double angle();
-    double angleBetween(Particle *par);
+    double angleBetween(Particle par);
+    void addNoise(double sigma, double thetaKappa);
+    static double randf();
+    static double randn(double m, double s);
 
     //Setters
     void x(double newX);

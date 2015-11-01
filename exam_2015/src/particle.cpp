@@ -1,4 +1,5 @@
 #include "particle.hpp"
+#include <cstdlib>
 #include <cmath>
 
 Particle::Particle(double x, double y, double theta, double weight) {
@@ -107,12 +108,39 @@ double Particle::angle(){
     return atan2(_y, _x);
 }
 
-double Particle::angleBetween(Particle *par)
+double Particle::angleBetween(Particle par)
 {
-    double dot = this->_x * par->_x + this->_y * par->_y;
-    double det = this->_x * par->_y - this->_y * par->_x;
+    return atan2(par.y(), par.x()) - atan2(y(), x());
+}
 
-    return atan2(det, dot);
+void Particle::addNoise(double sigma, double thetaKappa){
+    this->move(
+        randn(0, sigma),
+        randn(0, sigma),
+        randn(0, thetaKappa)
+    );
+}
+
+double Particle::randf()
+{
+    const int r = rand();
+    return ((double)r)/(double)RAND_MAX;
+}
+
+double Particle::randn(double m, double s){
+    double x1, x2, w, y1;
+
+    do
+      {
+        x1 = 2.0 * randf () - 1.0;
+        x2 = 2.0 * randf () - 1.0;
+        w = x1 * x1 + x2 * x2;
+      }
+    while (w >= 1.0);
+    
+    w = sqrt ((-2.0 * log(w)) / w);
+    y1 = x1 * w;
+    return (m + y1 * s);
 }
 
 vector<Particle> interpolatePath(vector<Particle> &path, int steps){
