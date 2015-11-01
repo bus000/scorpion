@@ -3,7 +3,6 @@
 #include <cassert>
 #include <stdio.h>
 #include <iostream>
-#include <float.h>
 
 WorldMap::WorldMap(int numSqWidth, int numSqHeight, int sqSize,
         vector<Particle> landmarks) {
@@ -39,7 +38,7 @@ void WorldMap::decreaseProb(double percent)
     /* Set landmark positions as infinate. */
     for (int i = 0; i < this->landmarks.size(); i++) {
         Particle landmark = this->landmarks.at(i);
-        field(landmark.x(), landmark.y(), DBL_MAX);
+        field(landmark.x(), landmark.y(), 500.0);
     }
 }
 
