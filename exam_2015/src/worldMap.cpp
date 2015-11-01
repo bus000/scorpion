@@ -12,7 +12,7 @@ WorldMap::WorldMap(int numSqWidth, int numSqHeight, int sqSize){
 
     _sqSize = sqSize;
 
-    map = new int[numSqWidth*numSqHeight];
+    map = new double[numSqWidth*numSqHeight];
 
     clear();
 }
@@ -32,7 +32,7 @@ void WorldMap::clear(){
     memset(map, 0, _numSqWidth*_numSqHeight);
 }
 
-void WorldMap::field(int col, int row, int prob){
+void WorldMap::field(int col, int row, double prob){
     if (col > _numSqWidth  ||
         row > _numSqHeight ||
         col < 0 ||
@@ -44,14 +44,14 @@ void WorldMap::field(int col, int row, int prob){
     field(col, row) = prob;
 }
 
-int& WorldMap::field(int col, int row){
+double& WorldMap::field(int col, int row){
     assert(col < _numSqWidth);
     assert(row < _numSqHeight);
 
     return map[(col*_numSqHeight)+row];
 }
 
-int* WorldMap::operator[] (int col){
+double* WorldMap::operator[] (int col){
     return &field(col, 0);
 }
 
@@ -85,7 +85,7 @@ int WorldMap::getColFromX(double x){
     return col;
 }
 
-int& WorldMap::fieldAt(double x, double y){
+double& WorldMap::fieldAt(double x, double y){
     return field(getColFromX(x), getRowFromY(y));
 }
 
@@ -102,7 +102,7 @@ void WorldMap::print() {
     }
 }
 
-void WorldMap::markFrom(Particle robot, Particle obstacle, int prob) {
+void WorldMap::markFrom(Particle robot, Particle obstacle, double prob) {
   int robX = this->getColFromX(robot.x());
   int robY = this->getRowFromY(robot.y());
 
@@ -144,7 +144,7 @@ void WorldMap::print(vector<Particle> &path, Particle curPos) {
             if (onPath) {
                 cout << " * ";
             }
-            else if (field(x, y) == 0)
+            else if (field(x, y) <= 0.001)
                 cout << " . ";
             else
                 cout << " @ ";
@@ -154,9 +154,9 @@ void WorldMap::print(vector<Particle> &path, Particle curPos) {
     }
 }
 
-int WorldMap::besideObstacle(int col, int row) {
-    int sum = 0;
-    int n   = 0;
+double WorldMap::besideObstacle(int col, int row) {
+    double sum = 0;
+    double n   = 0;
 
     if (col+1 < numSquareWidth()) {
         n++;
@@ -238,7 +238,7 @@ int PathNode::heuristic(int goalX, int goalY, WorldMap *map) {
                  ? BESIDE_COST
                  : 0;
 
-    int prob = map->field(this->x(), this->y());
+    double prob = map->field(this->x(), this->y());
 
     int nprob = 0.5 + ((double)prob) * PROB_ADJUST;
 
