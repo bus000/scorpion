@@ -71,8 +71,7 @@ void ParticleFilter::dynamicModel(Particle command){
             command.angle() == 0.0){
 
         for(it = _particles->begin(); it != _particles->end(); it++)
-            it->addNoise(0.3,0.2);
-        std::cout << "we are here\n\n";
+            it->addNoise(0.5,0.5);
         return;
     }
 
@@ -96,7 +95,7 @@ void ParticleFilter::observationModel(Measurement measurement){
 
         _angleWeights[w_count] = GaussianDist(
             measurement.measurement.angle(),
-            0.3, //sigma: something else here
+            1.5e-05,
             hypoAngle
         );
         Particle pDiff = *it;
@@ -105,7 +104,7 @@ void ParticleFilter::observationModel(Measurement measurement){
         double distance = pDiff.length();
         _distanceWeights[w_count] = GaussianDist(
             measurement.measurement.length(),
-            1.5, //sigma: something else here
+            0.274, //sigma: something else here
             distance
         );
         w_count++;
