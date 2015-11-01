@@ -5,7 +5,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "mapPresenter.hpp"
 #include <cmath>
-
+/*
 void updateMap(IRSensors &sensors, WorldMap &map, Particle robot) {
     vector<Particle> obstacles = sensors.getObstaclePosition(robot);
 
@@ -49,7 +49,6 @@ int main(int argc, char *argv[])
     DriveCtl driveCtl(&robot, &position);
     IRSensors sensors(&robot);
 
-    /* Remove later. */
     driveCtl.setXPos(0.0);
     driveCtl.setYPos(map.width() / 2);
 
@@ -83,7 +82,7 @@ int main(int argc, char *argv[])
 
     return EXIT_SUCCESS;
 }
-
+*/
 //int main(int argc, char **argv){
 //    WorldMap map(40, 30, 10);
 //    MapPresenter presenter(&map);
