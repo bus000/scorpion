@@ -10,6 +10,13 @@ Particle::Particle(double x, double y, double theta, double weight) {
     overRunTheta();
 }
 
+Particle::Particle(Particle particle) {
+    _x = particle.x();
+    _y = particle.y();
+    _theta = particle.theta();
+    _weight = particle.weight();
+}
+
 void Particle::rotate(double delta){
     Particle tmp = Particle::createUnit(this->angle() + delta);
     tmp.scale(this->length());
@@ -37,9 +44,23 @@ void Particle::add(Particle other) {
   _y += other.y();
 }
 
+void Particle::addThetha(Particle other) {
+  _x += other.x();
+  _y += other.y();
+  _theta += other.theta();
+  overRunTheta();
+}
+
 void Particle::sub(Particle other) {
   _x -= other.x();
   _y -= other.y();
+}
+
+void Particle::subTheta(Particle other) {
+  _x -= other.x();
+  _y -= other.y();
+  _theta = other.theta();
+  overRunTheta();
 }
 
 Particle Particle::createUnit(double angle){
