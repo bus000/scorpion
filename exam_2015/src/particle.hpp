@@ -9,16 +9,16 @@ class Particle {
 public:
     Particle(double x = 0, double y = 0, double theta = 0, double weight = 0);
 
-    Particle(Particle particle);
+    //Particle(Particle &particle);
 
     void rotate(double delta);
     void move(double x, double y, double theta);
     void addLength(double scalar);
     void add(Particle other);
-    void addThetha(Particle other);
+    void addTheta(Particle other);
 
     void sub(Particle other);
-    void subTheta(Particle other) {
+    void subTheta(Particle other);
 
 
     static Particle createUnit(double angle);

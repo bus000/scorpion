@@ -10,12 +10,12 @@ Particle::Particle(double x, double y, double theta, double weight) {
     overRunTheta();
 }
 
-Particle::Particle(Particle particle) {
-    _x = particle.x();
-    _y = particle.y();
-    _theta = particle.theta();
-    _weight = particle.weight();
-}
+//Particle::Particle (Particle &particle) {
+    //_x = particle.x();
+    //_y = particle.y();
+    //_theta = particle.theta();
+    //_weight = particle.weight();
+//}
 
 void Particle::rotate(double delta){
     Particle tmp = Particle::createUnit(this->angle() + delta);
@@ -44,7 +44,7 @@ void Particle::add(Particle other) {
   _y += other.y();
 }
 
-void Particle::addThetha(Particle other) {
+void Particle::addTheta(Particle other) {
   _x += other.x();
   _y += other.y();
   _theta += other.theta();
@@ -158,7 +158,7 @@ double Particle::randn(double m, double s){
         w = x1 * x1 + x2 * x2;
       }
     while (w >= 1.0);
-    
+
     w = sqrt ((-2.0 * log(w)) / w);
     y1 = x1 * w;
     return (m + y1 * s);

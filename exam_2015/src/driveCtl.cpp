@@ -9,11 +9,11 @@ DriveCtl::DriveCtl(PlayerCc::PlayerClient *robot,
     reset();
 }
 
-DriveCtl::odometryParticle() {
+Particle DriveCtl::odometryParticle() {
     robot->Read();
-    double x = positionProxy->getXPos();
-    double y = positionProxy->getYPos();
-    double t = positionProxy->getYaw();
+    double x = positionProxy->GetXPos();
+    double y = positionProxy->GetYPos();
+    double t = positionProxy->GetYaw();
 
     return Particle(x, y, t);
 }
@@ -24,27 +24,27 @@ Particle DriveCtl::reset() {
 }
 
 Particle DriveCtl::pose() {
-    Particle odo = this->odometryParticle(); 
+    Particle odo = this->odometryParticle();
 
     odo.subTheta(this->odometryOffset);
 
     return odo;
 }
 
-void DriveCtl::gotoPose(Particle position, ) {
+void DriveCtl::gotoPose(Particle position) {
     // Calculate the vector we want to drive
     Particle diff(position);
     diff.subTheta(pose());
 
     // Make the ´real´ position in odometry-coordinates
     Particle realPosition(diff);
-    realPosition.addTheta(odometryOffset());
+    realPosition.addTheta(odometryOffset);
 
     // Make a vector a little bit further than where
     // we want to be.
     Particle littleMore(diff);
     littleMore.addLength(GOTO_OFFSET);
-    littleMore.addTheta(odometryOffset());
+    littleMore.addTheta(odometryOffset);
 
     // Start moving the robot
     positionProxy->GoTo( realPosition.x()
@@ -58,7 +58,7 @@ void DriveCtl::gotoPose(Particle position, ) {
         Particle remaining(littleMore);
         remaining.subTheta(odo);
 
-        double thetaDiff = 
+        double thetaDiff =
             abs( remaining.theta()
                - realPosition.theta());
 
@@ -72,7 +72,7 @@ void DriveCtl::gotoPose(Particle position, ) {
 }
 
 void DriveCtl::turn(double rads) {
-    Particle newPose = pose(); 
+    Particle newPose = pose();
     newPose.theta(newPose.theta() + rads);
 
     gotoPose(newPose);
