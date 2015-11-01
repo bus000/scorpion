@@ -11,7 +11,7 @@ ParticleFilter::ParticleFilter(std::vector<Particle> *particles,
 }
 
 void ParticleFilter::filter(Measurement measurement, Particle command){
-    int resampleLimit = _particles->size()*0.99;
+    int resampleLimit = _particles->size()*0.995;
     int newParticlesLimit = _particles->size()-resampleLimit;
     _angleWeights.assign(_particles->size(), 0.0);
     _distanceWeights.assign(_particles->size(), 0.0);
@@ -66,19 +66,19 @@ void ParticleFilter::addRandomParticles(int limit){
 
 void ParticleFilter::dynamicModel(Particle command){
     std::vector<Particle>::iterator it;
-    if(command.x() == 0.0 &&
-            command.y() == 0.0 &&
-            command.angle() == 0.0){
-
-        for(it = _particles->begin(); it != _particles->end(); it++)
-            it->addNoise(0.5,0.5);
-        return;
-    }
 
     for(it = _particles->begin(); it != _particles->end(); it++){
         it->add(command);
-        double sigma = command.length()*0.15;
-        double kappa = (abs(command.angle())/M_PI)*0.1;
+        double sigma;
+        if(command.x() == 0.0 && command.y() == 0.0)
+           sigma = 4.5;
+        else
+           sigma = command.length()*0.15;
+        double kappa;
+        if(command.theta() == 0.0)
+           kappa = 0.3;
+        else
+           kappa = (abs(command.angle())/M_PI)*0.6;
         it->addNoise(sigma, kappa);
     }
 }
@@ -95,7 +95,7 @@ void ParticleFilter::observationModel(Measurement measurement){
 
         _angleWeights[w_count] = GaussianDist(
             measurement.measurement.angle(),
-            1.5e-05,
+            5.0e-04,
             hypoAngle
         );
         Particle pDiff = *it;
@@ -143,6 +143,9 @@ void ParticleFilter::resample(int limit){
             else
                 front = middle;
         }
+
+        while(_particles->at(front).weight() == 0.0)
+            front--;
 
         newParticles.push_back(_particles->at(front));
     }
