@@ -39,7 +39,7 @@ vector<Particle> IRSensors::getObstacles(void)
     }
 
     for (int i = 0; i < SENSOR_NUM; i++) {
-        double average = sensorData[i] / this->filterStrength;
+        double average = sensorData[i] / (double) this->filterStrength;
         if (average > CUTOFF)
             continue;
 
@@ -48,6 +48,7 @@ vector<Particle> IRSensors::getObstacles(void)
         Particle position = this->sensorPosition(i);
         angle.scale(distance);
         angle.move(position.x(), position.y(), 0.0);
+        angle.addLength(-10.0);
 
         result.push_back(angle);
     }
@@ -102,31 +103,31 @@ Particle IRSensors::sensorPosition(int sensor)
 {
     switch (sensor) {
     case IrEastNorthEast:
-        return Particle(10.0, 0.0);
+        return Particle(18.0,-8.0);
     case IrWestNorthWest:
-        return Particle(10.0, 0.0);
+        return Particle(18.0, 8.0);
     case IrNorth:
-        return Particle(10.0, 0.0);
+        return Particle(8.0, 0.0);
     case IrNorthEast:
-        return Particle(10.0, 0.0);
+        return Particle(13.0, 6.5);
     case IrNorthWest:
-        return Particle(10.0, 0.0);
+        return Particle(13.0,-6.5);
     case IrNarrowNorthNorthWest:
-        return Particle(0.0, 10.0);
+        return Particle(6.5, -18.0);
     case IrNarrowNorthNorthEast:
-        return Particle(0.0, 10.0);
+        return Particle(6.5, 18.0);
     case IrCenterNorthNorthWest:
-        return Particle(0.0, -10.0);
+        return Particle(-4.0, -19.0);
     case IrCenterNorthNorthEast:
-        return Particle(0.0, -10.0);
+        return Particle(-4.0, 19.0);
     case IrWest:
-        return Particle(-5.0, 0.0);
+        return Particle(-15.0, -4.0);
     case IrEast:
-        return Particle(-5.0, 0.0);
+        return Particle(-15.0, 4.0);
     case IrSouthLeft:
-        return Particle(0.0, -5.0);
+        return Particle(-10.0, -7.5);
     case IrSouthRight:
-        return Particle(0.0, 5.0);
+        return Particle(-10.0, 7.5);
     default:
         fprintf(stderr, "err: unknown IR sensor with ID %d\n", sensor);
         return Particle(0.0, 0.0);

@@ -9,15 +9,27 @@
 
 #define STRAIGHT_COST 10
 #define DIAGONAL_COST 14
+#define BESIDE_COST   100
 
 using namespace std;
+
+class WorldMap;
 
 class PathNode {
 public:
 
-    PathNode(int x, int y, int goalX, int goalY);
+    PathNode( int x
+            , int y
+            , int goalX
+            , int goalY
+            , WorldMap *map);
 
-    PathNode(int x, int y, int goalX, int goalY, PathNode *parent);
+    PathNode( int x
+            , int y
+            , int goalX
+            , int goalY
+            , PathNode *parent
+            , WorldMap *map);
 
     PathNode *parent() { return this->_parent; };
 
@@ -36,7 +48,7 @@ private:
     int _h;
 
     void calculateG();
-    int manhattan(int goalX, int goalY);
+    int heuristic(int goalX, int goalY, WorldMap *map);
 };
 
 class WorldMap {
@@ -61,6 +73,8 @@ public:
     int numSquareHeight();
     double width();
     double height();
+
+    bool besideObstacle(int col, int row);
 
     vector<Particle> findPath( Particle &start
             , Particle &goal

@@ -5,44 +5,30 @@
 #include <unistd.h>
 
 int main() {
-  //WorldMap map(70, 70, 7, 7);
+  WorldMap map(7, 7, 10);
 
-  //map.field(3, 2, true);
-  //map.field(3, 3, true);
-  //map.field(3, 4, true);
-  //map.field(3, 5, true);
-  //map.field(3, 6, true);
-
-
-  //Particle start(15, 35);
-  //Particle goal(55, 35);
+  map.field(3, 2, true);
+  map.field(2, 2, true);
+  map.field(3, 3, true);
+  map.field(3, 4, true);
+  map.field(3, 5, true);
+  map.field(3, 6, true);
 
 
-  //vector<Particle> path = map.findPath(start, goal);
+  Particle start(15, 35);
+  Particle goal(55, 35);
 
-  //cout << "\033[2J\033[1;1H";
-  //path = map.findPath(start, goal);
-  //map.print(path, start);
-  //start = path[0];
-  //getchar();
+  vector<Particle> path = map.findPath(start, goal);
 
-  //cout << "\033[2J\033[1;1H";
-  //path = map.findPath(start, goal);
-  //map.print(path, start);
-  //start = path[0];
-  //getchar();
+  while (path.size() > 0) {
+    cout << "\033[2J\033[1;1H";
+    path = map.findPath(start, goal);
+    map.print(path, start);
+    start = path[0];
+    getchar();
+  }
 
-  //map.field(3, 1, true);
-
-  //while (path.size() > 0) {
-    //cout << "\033[2J\033[1;1H";
-    //path = map.findPath(start, goal);
-    //map.print(path, start);
-    //start = path[0];
-    //getchar();
-  //}
-
-  //cout << "done at (" << start.x() << ", " << start.y() << ")" << endl;
+  cout << "done at (" << start.x() << ", " << start.y() << ")" << endl;
 
   return 0;
 }

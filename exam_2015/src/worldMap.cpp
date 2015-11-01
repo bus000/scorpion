@@ -13,7 +13,7 @@ WorldMap::WorldMap(int numSqWidth, int numSqHeight, int sqSize){
     _sqSize = sqSize;
 
     map = new bool[numSqWidth*numSqHeight];
-    
+
     clear();
 }
 
@@ -98,9 +98,9 @@ void WorldMap::print() {
 void WorldMap::markFrom(Particle robot, Particle obstacle) {
   int robX = this->getColFromX(robot.x());
   int robY = this->getRowFromY(robot.y());
- 
+
   // Keep increasing the distance to the obstacle until
-  // it is not in the same square as the robot. 
+  // it is not in the same square as the robot.
   while (robX == this->getColFromX(obstacle.x()) &&
          robY == this->getRowFromY(obstacle.y())) {
     obstacle.sub(robot);
@@ -147,27 +147,42 @@ void WorldMap::print(vector<Particle> &path, Particle curPos) {
     }
 }
 
+bool WorldMap::besideObstacle(int col, int row) {
+    if (col+1 < numSquareWidth() && field(col+1, row))
+      return true;
+    if (col-1 >= 0 && field(col-1, row))
+      return true;
+    if (row+1 < numSquareHeight() && field(col, row+1))
+      return true;
+    if (row-1 > 0 && field(col, row-1))
+      return true;
+
+    return false;
+}
+
 //                PATH-FINDING                //
 // ------******------******------******------ //
 
 PathNode::PathNode( int x
-        , int y
-        , int goalX
-        , int goalY) {
+                  , int y
+                  , int goalX
+                  , int goalY
+                  , WorldMap *map) {
     this->_x = x;
     this->_y = y;
-    this->_h = manhattan(goalX, goalY);
+    this->_h = heuristic(goalX, goalY, map);
     this->giveParent(NULL);
 }
 
 PathNode::PathNode( int x
-        , int y
-        , int goalX
-        , int goalY
-        , PathNode *parent) {
+                  , int y
+                  , int goalX
+                  , int goalY
+                  , PathNode *parent
+                  , WorldMap *map) {
     this->_x = x;
     this->_y = y;
-    this->_h = manhattan(goalX, goalY);
+    this->_h = heuristic(goalX, goalY, map);
     this->giveParent(parent);
 }
 
@@ -196,10 +211,16 @@ int PathNode::f() {
     return this->g() + this->_h;
 }
 
-int PathNode::manhattan(int goalX, int goalY) {
-    return ( abs(goalX - this->x())
-            + abs(goalY - this->y()))
-        * STRAIGHT_COST;
+int PathNode::heuristic(int goalX, int goalY, WorldMap *map) {
+    int movement = abs(goalX - this->x())
+                 + abs(goalY - this->y())
+                 * STRAIGHT_COST;
+   
+    int obstacle = map->besideObstacle(this->x(), this->y())
+                 ? BESIDE_COST
+                 : 0;
+
+    return movement + obstacle;
 }
 
 bool byF(PathNode *a, PathNode *b) {
@@ -219,7 +240,8 @@ vector<Particle> WorldMap::findPath( Particle &start
             this->getRowFromY(start.y()),
             goalX,
             goalY,
-            NULL
+            NULL,
+            this
             );
 
     if (startNode->x() == goalX && startNode->y() == goalY) {
@@ -262,7 +284,6 @@ vector<Particle> WorldMap::findPath( Particle &start
         if (current->x() == goalX && current->y() == goalY) {
             goalNode = current;
             break;
-
         }
 
         // Find and check all the tiles reachable from here
@@ -272,11 +293,20 @@ vector<Particle> WorldMap::findPath( Particle &start
         for (int i = 0; i < walkable.size(); i++) {
             PathNode *tryOut = walkable[i];
 
+            bool inClosed = false;
+
             // If tryOut is in the closed set, we have already checked it out
-            if (find(closed.begin(), closed.end(), tryOut) != closed.end()) {
-                delete tryOut;
-                continue;
+            for (int i = 0; i < closed.size(); i++) {
+                PathNode *other = closed[i];
+
+                if (other->x() == tryOut->x() && other->y() == tryOut->y()) {
+                    delete tryOut;
+                    inClosed = true;
+                    break;
+                }
             }
+
+            if (inClosed) continue;
 
             tryOut->giveParent(current);
             bool inOpen = false;
@@ -344,44 +374,44 @@ vector<PathNode*> WorldMap::getWalkable(int x, int y, int goalX, int goalY) {
     bool right = false;
 
     // Check sides
-    if (!this->field(x, y+1) && y+1 < this->height()) {
+    if (y+1 < this->numSquareHeight() && !this->field(x, y+1)) {
         right = true;
-        walkable.push_back(new PathNode(x, y + 1, goalX, goalY));
+        walkable.push_back(new PathNode(x, y + 1, goalX, goalY, this));
     }
 
-    if (!this->field(x, y-1) && y-1 >= 0) {
+    if (y-1 >= 0 && !this->field(x, y-1)) {
         left = true;
-        walkable.push_back(new PathNode(x, y - 1, goalX, goalY));
+        walkable.push_back(new PathNode(x, y - 1, goalX, goalY, this));
     }
 
     // Check sides
-    if (!this->field(x+1, y) && x+1 < this->width()) {
+    if ( x+1 < this->numSquareWidth() && !this->field(x+1, y)) {
         up = true;
-        walkable.push_back(new PathNode(x + 1, y , goalX, goalY));
+        walkable.push_back(new PathNode(x + 1, y , goalX, goalY, this));
     }
 
-    if (!this->field(x-1, y) && x-1 >= 0) {
+    if (x-1 >= 0 && !this->field(x-1, y)) {
         down = true;
-        walkable.push_back(new PathNode(x - 1, y , goalX, goalY));
+        walkable.push_back(new PathNode(x - 1, y , goalX, goalY, this));
     }
 
     // Check diagonals
     // We must only move to diagnal tiles if they are not
     // adjacet to an unwalkable tile.
     if (up && right && !this->field(x + 1, y + 1)) {
-        walkable.push_back(new PathNode(x + 1, y + 1, goalX, goalY));
+        walkable.push_back(new PathNode(x + 1, y + 1, goalX, goalY, this));
     }
 
     if (up && left && !this->field(x + 1, y - 1)) {
-        walkable.push_back(new PathNode(x + 1, y - 1, goalX, goalY));
+        walkable.push_back(new PathNode(x + 1, y - 1, goalX, goalY, this));
     }
 
     if (down && left && !this->field(x - 1, y - 1)) {
-        walkable.push_back(new PathNode(x - 1, y - 1, goalX, goalY));
+        walkable.push_back(new PathNode(x - 1, y - 1, goalX, goalY, this));
     }
 
     if (down && right && !this->field(x - 1, y + 1)) {
-        walkable.push_back(new PathNode(x - 1, y + 1, goalX, goalY));
+        walkable.push_back(new PathNode(x - 1, y + 1, goalX, goalY, this));
     }
 
     return walkable;
