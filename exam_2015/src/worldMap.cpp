@@ -12,7 +12,7 @@ WorldMap::WorldMap(int numSqWidth, int numSqHeight, int sqSize){
 
     _sqSize = sqSize;
 
-    map = new bool[numSqWidth*numSqHeight];
+    map = new int[numSqWidth*numSqHeight];
 
     clear();
 }
@@ -25,7 +25,7 @@ void WorldMap::clear(){
     memset(map, 0, _numSqWidth*_numSqHeight);
 }
 
-void WorldMap::field(int col, int row, bool mark){
+void WorldMap::field(int col, int row, int prob){
     if (col > _numSqWidth  ||
         row > _numSqHeight ||
         col < 0 ||
@@ -34,17 +34,17 @@ void WorldMap::field(int col, int row, bool mark){
       return;
     }
 
-    field(col, row) = mark;
+    field(col, row) = prob;
 }
 
-bool& WorldMap::field(int col, int row){
+int& WorldMap::field(int col, int row){
     assert(col < _numSqWidth);
     assert(row < _numSqHeight);
 
     return map[(col*_numSqHeight)+row];
 }
 
-bool* WorldMap::operator[] (int col){
+int* WorldMap::operator[] (int col){
     return &field(col, 0);
 }
 
@@ -78,24 +78,24 @@ int WorldMap::getColFromX(double x){
     return col;
 }
 
-bool& WorldMap::fieldAt(double x, double y){
+int& WorldMap::fieldAt(double x, double y){
     return field(getColFromX(x), getRowFromY(y));
 }
 
 void WorldMap::print() {
     for (int y = 0; y < this->numSquareHeight(); y++) {
         for (int x = 0; x < this->numSquareWidth(); x++) {
-            if (field(x, y))
-                cout << " X ";
-            else
+            if (field(x, y) == 0)
                 cout << " . ";
+            else
+                cout << " X ";
         }
 
         cout << endl;
     }
 }
 
-void WorldMap::markFrom(Particle robot, Particle obstacle) {
+void WorldMap::markFrom(Particle robot, Particle obstacle, int prob) {
   int robX = this->getColFromX(robot.x());
   int robY = this->getRowFromY(robot.y());
 
@@ -111,7 +111,7 @@ void WorldMap::markFrom(Particle robot, Particle obstacle) {
   // Mark the tile
   this->field( this->getColFromX(obstacle.x())
              , this->getRowFromY(obstacle.y())
-             , true);
+             , prob);
 }
 
 void WorldMap::print(vector<Particle> &path, Particle curPos) {
@@ -134,30 +134,41 @@ void WorldMap::print(vector<Particle> &path, Particle curPos) {
                 };
             }
 
-            if (field(x, y))
-                cout << " @ ";
-            else if (onPath) {
+            if (onPath) {
                 cout << " * ";
             }
-            else
+            else if (field(x, y) == 0)
                 cout << " . ";
+            else
+                cout << field(x, y);
         }
 
         cout << endl;
     }
 }
 
-bool WorldMap::besideObstacle(int col, int row) {
-    if (col+1 < numSquareWidth() && field(col+1, row))
-      return true;
-    if (col-1 >= 0 && field(col-1, row))
-      return true;
-    if (row+1 < numSquareHeight() && field(col, row+1))
-      return true;
-    if (row-1 > 0 && field(col, row-1))
-      return true;
+int WorldMap::besideObstacle(int col, int row) {
+    int sum = 0;
+    int n   = 0;
 
-    return false;
+    if (col+1 < numSquareWidth()) {
+        n++;
+        sum += field(col+1, row);
+    }
+    if (col-1 >= 0) {
+        n++;
+        sum += field(col-1, row);
+    }
+    if (row+1 < numSquareHeight()) {
+        n++;
+        sum += field(col, row+1);
+    }
+    if (row-1 > 0) {
+        n++;
+        sum += field(col, row-1);
+    }
+
+    return sum / n;
 }
 
 //                PATH-FINDING                //
@@ -220,7 +231,11 @@ int PathNode::heuristic(int goalX, int goalY, WorldMap *map) {
                  ? BESIDE_COST
                  : 0;
 
-    return movement + obstacle;
+    int prob = map->field(this->x(), this->y());
+
+    int nprob = 0.5 + ((double)prob) * PROB_ADJUST;
+
+    return movement + obstacle + nprob;
 }
 
 bool byF(PathNode *a, PathNode *b) {
@@ -374,23 +389,23 @@ vector<PathNode*> WorldMap::getWalkable(int x, int y, int goalX, int goalY) {
     bool right = false;
 
     // Check sides
-    if (y+1 < this->numSquareHeight() && !this->field(x, y+1)) {
+    if (y+1 < this->numSquareHeight()) {
         right = true;
         walkable.push_back(new PathNode(x, y + 1, goalX, goalY, this));
     }
 
-    if (y-1 >= 0 && !this->field(x, y-1)) {
+    if (y-1 >= 0) {
         left = true;
         walkable.push_back(new PathNode(x, y - 1, goalX, goalY, this));
     }
 
     // Check sides
-    if ( x+1 < this->numSquareWidth() && !this->field(x+1, y)) {
+    if ( x+1 < this->numSquareWidth()) {
         up = true;
         walkable.push_back(new PathNode(x + 1, y , goalX, goalY, this));
     }
 
-    if (x-1 >= 0 && !this->field(x-1, y)) {
+    if (x-1 >= 0) {
         down = true;
         walkable.push_back(new PathNode(x - 1, y , goalX, goalY, this));
     }

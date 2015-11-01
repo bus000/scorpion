@@ -10,6 +10,7 @@
 #define STRAIGHT_COST 10
 #define DIAGONAL_COST 14
 #define BESIDE_COST   50
+#define PROB_ADJUST   1.0
 
 using namespace std;
 
@@ -55,15 +56,15 @@ class WorldMap {
 public:
     WorldMap(int numSqWidth, int numSqHeight, int sqSize);
     ~WorldMap();
-    void field(int col, int row, bool mark);
-    bool& field(int col, int row);
+    void field(int col, int row, int prob);
+    int& field(int col, int row);
 
-    void markFrom(Particle robot, Particle obstacle);
+    void markFrom(Particle robot, Particle obstacle, int prob);
     //[col][row]
-    bool* operator[] (int col);
+    int* operator[] (int col);
     int getRowFromY(double y);
     int getColFromX(double x);
-    bool& fieldAt(double x, double y);
+    int& fieldAt(double x, double y);
     void clear();
     void print();
     void print(vector<Particle> &path, Particle curPos);
@@ -74,14 +75,14 @@ public:
     double width();
     double height();
 
-    bool besideObstacle(int col, int row);
+    int besideObstacle(int col, int row);
 
     vector<Particle> findPath( Particle &start
             , Particle &goal
             );
 
 private:
-    bool *map;
+    int *map;
 
     int _sqSize;
     int _width;
