@@ -17,7 +17,7 @@ IRSensors::IRSensors(PlayerCc::PlayerClient *robot, unsigned int filterStrength)
     // Making Preleminary Read to get rid of garbage data
     for(int i = 0; i < filterStrength; i ++)
     {
-        robot.Read();
+        robot->Read();
     }
 
 }
@@ -53,7 +53,7 @@ vector<Particle> IRSensors::getObstacles(void)
     return result;
 }
 
-double IRSensors::sensorValueToCM(double sensorValue);
+double IRSensors::sensorValueToCM(double sensorValue)
 {
     return (log(sensorValue) - log(0.111128921))/log(1.053970723);
 }
