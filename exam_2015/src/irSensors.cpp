@@ -7,30 +7,27 @@
 
 using namespace std;
 
-IRSensors::IRSensors(PlayerCc::PlayerClient *robot)
-{
-    this->robot = robot;
-    this->filterStrength = DEFAULT_FILTERSTRENGTH;
-    this->irProxy = new PlayerCc::IrProxy(this->robot);
-
-    for (int i = 0; i < this->filterStrength; i++)
-        this->robot->Read();
-}
-
 IRSensors::IRSensors(PlayerCc::PlayerClient *robot, unsigned int filterStrength)
 {
     this->robot = robot;
     this->filterStrength = filterStrength;
     this->irProxy = new PlayerCc::IrProxy(this->robot);
 
-    for (int i = 0; i < this->filterStrength; i++)
-        this->robot->Read();
+
+    // Making Preleminary Read to get rid of garbage data
+    for(int i = 0; i < filterStrength; i ++)
+    {
+        robot.Read();
+    }
+
 }
 
 vector<Particle> IRSensors::getObstacles(void)
 {
     vector<Particle> result;
     double sensorData[SENSOR_NUM] = {0};
+    double distance;
+    double average;
 
     for (int i = 0; i < this->filterStrength; i++) {
         this->robot->Read();
@@ -39,11 +36,11 @@ vector<Particle> IRSensors::getObstacles(void)
     }
 
     for (int i = 0; i < SENSOR_NUM; i++) {
-        double average = sensorData[i] / (double) this->filterStrength;
+        average = sensorData[i] / (double) this->filterStrength;
         if (average > CUTOFF)
             continue;
 
-        double distance = sensorValueToCM(average);
+        distance = sensorValueToCM(average);
         Particle angle = this->sensorAngle(i);
         Particle position = this->sensorPosition(i);
         angle.scale(distance);
@@ -56,12 +53,9 @@ vector<Particle> IRSensors::getObstacles(void)
     return result;
 }
 
-double IRSensors::sensorValueToCM(double sensorValue)
+double IRSensors::sensorValueToCM(double sensorValue);
 {
-    if (sensorValue > SENSOR_VALUE_FUNCTION_SHIFT)
-        return (sensorValue + 1.06466) / 0.051711;
-    else
-        return (sensorValue - 0.0787) / 0.01389;
+    return (log(sensorValue) - log(0.111128921))/log(1.053970723);
 }
 
 Particle IRSensors::sensorAngle(int sensor)
