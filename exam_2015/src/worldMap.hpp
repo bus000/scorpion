@@ -54,7 +54,8 @@ private:
 
 class WorldMap {
 public:
-    WorldMap(int numSqWidth, int numSqHeight, int sqSize);
+    WorldMap(int numSqWidth, int numSqHeight, int sqSize,
+            vector<Particle> landmarks);
     ~WorldMap();
     void field(int col, int row, double prob);
     double& field(int col, int row);
@@ -94,6 +95,7 @@ private:
     int _numSqHeight;
 
     vector<PathNode*> getWalkable(int x, int y, int goalX, int goalY);
+    vector<Particle> landmarks;
 };
 
 #endif

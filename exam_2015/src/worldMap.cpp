@@ -3,8 +3,10 @@
 #include <cassert>
 #include <stdio.h>
 #include <iostream>
+#include <float.h>
 
-WorldMap::WorldMap(int numSqWidth, int numSqHeight, int sqSize){
+WorldMap::WorldMap(int numSqWidth, int numSqHeight, int sqSize,
+        vector<Particle> landmarks) {
     _width = numSqWidth*sqSize;
     _height = numSqHeight*sqSize;
     _numSqWidth = numSqWidth;
@@ -13,6 +15,13 @@ WorldMap::WorldMap(int numSqWidth, int numSqHeight, int sqSize){
     _sqSize = sqSize;
 
     map = new double[numSqWidth*numSqHeight];
+
+    for (int i = 0; i < landmarks.size(); i++) {
+        Particle landmark = landmarks.at(i);
+        Particle mapPosition(this->getColFromX(landmark.x()),
+                this->getRowFromY(landmark.y()));
+        this->landmarks.push_back(mapPosition);
+    }
 
     clear();
 }
@@ -26,6 +35,12 @@ void WorldMap::decreaseProb(double percent)
     for (int x = 0; x < this->_numSqWidth; x++)
         for (int y = 0; y < this->_numSqHeight; y++)
             field(x, y, field(x, y) * (percent / 100.0));
+
+    /* Set landmark positions as infinate. */
+    for (int i = 0; i < this->landmarks.size(); i++) {
+        Particle landmark = this->landmarks.at(i);
+        field(landmark.x(), landmark.y(), DBL_MAX);
+    }
 }
 
 void WorldMap::clear(){
