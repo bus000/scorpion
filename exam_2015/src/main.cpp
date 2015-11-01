@@ -15,6 +15,16 @@ void updateMap(IRSensors &sensors, WorldMap &map, Particle robot) {
     }
 }
 
+Particle getNext(vector<Particle> path, Particle robotPos)
+{
+    path.insert(path.begin(), robotPos);
+    vector<Particle> interpolatedPath = interpolatePath(path, 3);
+    interpolatedPath.erase(interpolatedPath.begin());
+    Particle nextStep = interpolatedPath.at(0);
+
+    return nextStep;
+}
+
 int main(int argc, char *argv[])
 {
     //PlayerCc::PlayerClient robot("192.168.100.253");
@@ -23,8 +33,8 @@ int main(int argc, char *argv[])
     robot.SetDataMode(PLAYER_DATAMODE_PULL);
     robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
 
-    WorldMap map(50, 50, 10);
-    MapPresenter presenter(&map);
+    WorldMap map(15, 15, 50);
+    //MapPresenter presenter(&map);
     DriveCtl driveCtl(&robot, &position);
     IRSensors sensors(&robot);
 
@@ -32,32 +42,33 @@ int main(int argc, char *argv[])
     driveCtl.setXPos(0.0);
     driveCtl.setYPos(map.width() / 2);
 
-    Particle goal(driveCtl.getXPos() + 250, driveCtl.getYPos(), 0.0);
+    Particle goal(driveCtl.getXPos() + 200, driveCtl.getYPos(), 0.0);
     Particle robotPos(driveCtl.getXPos(), driveCtl.getYPos(), 0.0);
 
     updateMap(sensors, map, robotPos);
     vector<Particle> path = map.findPath(robotPos, goal);
-    cv::namedWindow("window");
+    //cv::namedWindow("window");
     map.print(path, robotPos);
 
     while (path.size() > 0) {
-        // Find obstacles
-        Particle nextStep = path.at(0);
+        Particle nextStep = getNext(path, robotPos);
         driveCtl.goToPos(nextStep.x(), nextStep.y());
 
         robotPos.x(driveCtl.getXPos());
         robotPos.y(driveCtl.getYPos());
         robotPos.theta(driveCtl.toRadians(driveCtl.getYaw()));
-        map.print(path, robotPos);
-        cv::Mat img = presenter.draw(robotPos);
-        imshow("window", img);
-        cv::waitKey(10);
+        //cv::Mat img = presenter.draw(robotPos);
+        //imshow("window", img);
+        //cv::waitKey(10);
 
         updateMap(sensors, map, robotPos);
+        map.print(path, robotPos);
         path.clear();
         // Calculate new path
         path = map.findPath(robotPos, goal);
     }
+
+    printf("end\n");
 
     return EXIT_SUCCESS;
 }

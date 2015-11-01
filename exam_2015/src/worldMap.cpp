@@ -215,7 +215,7 @@ int PathNode::heuristic(int goalX, int goalY, WorldMap *map) {
     int movement = abs(goalX - this->x())
                  + abs(goalY - this->y())
                  * STRAIGHT_COST;
-   
+
     int obstacle = map->besideObstacle(this->x(), this->y())
                  ? BESIDE_COST
                  : 0;
@@ -398,21 +398,21 @@ vector<PathNode*> WorldMap::getWalkable(int x, int y, int goalX, int goalY) {
     // Check diagonals
     // We must only move to diagnal tiles if they are not
     // adjacet to an unwalkable tile.
-    if (up && right && !this->field(x + 1, y + 1)) {
-        walkable.push_back(new PathNode(x + 1, y + 1, goalX, goalY, this));
-    }
+    //if (up && right && !this->field(x + 1, y + 1)) {
+        //walkable.push_back(new PathNode(x + 1, y + 1, goalX, goalY, this));
+    //}
 
-    if (up && left && !this->field(x + 1, y - 1)) {
-        walkable.push_back(new PathNode(x + 1, y - 1, goalX, goalY, this));
-    }
+    //if (up && left && !this->field(x + 1, y - 1)) {
+        //walkable.push_back(new PathNode(x + 1, y - 1, goalX, goalY, this));
+    //}
 
-    if (down && left && !this->field(x - 1, y - 1)) {
-        walkable.push_back(new PathNode(x - 1, y - 1, goalX, goalY, this));
-    }
+    //if (down && left && !this->field(x - 1, y - 1)) {
+        //walkable.push_back(new PathNode(x - 1, y - 1, goalX, goalY, this));
+    //}
 
-    if (down && right && !this->field(x - 1, y + 1)) {
-        walkable.push_back(new PathNode(x - 1, y + 1, goalX, goalY, this));
-    }
+    //if (down && right && !this->field(x - 1, y + 1)) {
+        //walkable.push_back(new PathNode(x - 1, y + 1, goalX, goalY, this));
+    //}
 
     return walkable;
 }

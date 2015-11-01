@@ -46,8 +46,8 @@ typedef enum {
 /* Handle the inferred sensors on the robot. */
 class IRSensors {
 public:
-    IRSensors(PlayerCc::PlayerClient *robot);
-    IRSensors(PlayerCc::PlayerClient *robot, unsigned int filterStrength);
+    IRSensors(PlayerCc::PlayerClient *robot,
+            unsigned int filterStrength = DEFAULT_FILTERSTRENGTH);
     ~IRSensors(void);
 
     /* Returns a list of particles in the directions obstacles are discovered.
