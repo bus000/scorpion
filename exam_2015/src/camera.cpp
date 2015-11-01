@@ -23,6 +23,8 @@ Camera::~Camera() {
 Measurement Camera::measure(bool showGui) {
     cvWaitKey(30);
     VideoCapture *vcap = this->videoCapture;
+    vcap->set(CV_CAP_PROP_FRAME_WIDTH, 1280);
+    vcap->set(CV_CAP_PROP_FRAME_HEIGHT, 720);
     Mat frame;
 
     // Read frame from webcam
