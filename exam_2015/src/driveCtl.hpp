@@ -3,9 +3,12 @@
 
 #include <libplayerc++/playerc++.h>
 #include "particle.hpp"
+#include <stdio.h>
 
 #define GOTO_OFFSET 3.0
 #define THETA_THRES 0.05
+#define DEFAULT_SPEED 0.1
+#define GOOD_ENOUGH_POS 3.0
 
 class DriveCtl{
 public:

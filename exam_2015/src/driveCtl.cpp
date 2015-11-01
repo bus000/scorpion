@@ -10,6 +10,7 @@ DriveCtl::DriveCtl(PlayerCc::PlayerClient *robot,
 }
 
 Particle DriveCtl::odometryParticle() {
+    usleep(100000); 
     robot->Read();
     double x = positionProxy->GetXPos();
     double y = positionProxy->GetYPos();
@@ -72,15 +73,35 @@ void DriveCtl::gotoPose(Particle position) {
 }
 
 void DriveCtl::turn(double rads) {
-    Particle newPose = pose();
-    newPose.theta(newPose.theta() + rads);
-
-    gotoPose(newPose);
 }
 
 void DriveCtl::drive(double dist) {
-    Particle unit = Particle::createUnit(pose().theta());
-    unit.scale(dist);
+  dist = dist / 100.0;
 
-    gotoPose(unit);
+  Particle odo = odometryParticle();
+
+  Particle unit = Particle::createUnit(odo.theta());
+  unit.scale(dist); // In cm
+
+  Particle final = odo;
+  final.addTheta(unit);
+
+  positionProxy->SetSpeed(DEFAULT_SPEED, 0);
+
+  while(true) {
+      Particle diff = odometryParticle();
+      diff.sub(final);
+
+      printf("Diff: l: %f, (%f, %f, %f)\n", diff.length()
+                                          , diff.x()
+                                          , diff.y()
+                                          , diff.theta()
+                                          );
+
+      if (diff.length() < GOOD_ENOUGH_POS)
+        break;
+     
+  }
+
+  positionProxy->SetSpeed(0, 0);
 }
