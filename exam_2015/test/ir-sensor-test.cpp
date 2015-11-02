@@ -36,7 +36,8 @@ int main(int argc, char const *argv[])
 
     for(int i = 1; i < 11; i++)
     {
-        driveController.goToPos(i * 10.0,0.0);
+        Particle goTo(i * 10.0, 0.0);
+        driveController.gotoPose(goTo);
         usleep(3000);
     }
 

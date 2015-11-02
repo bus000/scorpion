@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 int main() {
-  WorldMap map(7, 7, 10);
+  WorldMap map(7, 7, 10, vector<Particle>());
 
   map.field(3, 2, true);
   map.field(2, 2, true);

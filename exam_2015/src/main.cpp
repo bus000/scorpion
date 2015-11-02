@@ -5,7 +5,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "mapPresenter.hpp"
 #include <cmath>
-/*
+
 void updateMap(IRSensors &sensors, WorldMap &map, Particle robot) {
     vector<Particle> obstacles = sensors.getObstaclePosition(robot);
 
@@ -49,11 +49,8 @@ int main(int argc, char *argv[])
     DriveCtl driveCtl(&robot, &position);
     IRSensors sensors(&robot);
 
-    driveCtl.setXPos(0.0);
-    driveCtl.setYPos(map.width() / 2);
-
-    Particle goal(driveCtl.getXPos() + 200, driveCtl.getYPos(), 0.0);
-    Particle robotPos(driveCtl.getXPos(), driveCtl.getYPos(), 0.0);
+    Particle goal(200, 100.0, 0.0);
+    Particle robotPos = driveCtl.pose();
 
     updateMap(sensors, map, robotPos);
     vector<Particle> path = map.findPath(robotPos, goal);
@@ -62,11 +59,9 @@ int main(int argc, char *argv[])
 
     while (path.size() > 0) {
         Particle nextStep = getNext(path, robotPos);
-        driveCtl.goToPos(nextStep.x(), nextStep.y());
+        driveCtl.gotoPose(nextStep);
 
-        robotPos.x(driveCtl.getXPos());
-        robotPos.y(driveCtl.getYPos());
-        robotPos.theta(driveCtl.toRadians(driveCtl.getYaw()));
+        robotPos = driveCtl.pose();
         //cv::Mat img = presenter.draw(robotPos);
         //imshow("window", img);
         //cv::waitKey(10);
@@ -82,7 +77,7 @@ int main(int argc, char *argv[])
 
     return EXIT_SUCCESS;
 }
-*/
+
 //int main(int argc, char **argv){
 //    WorldMap map(40, 30, 10);
 //    MapPresenter presenter(&map);
