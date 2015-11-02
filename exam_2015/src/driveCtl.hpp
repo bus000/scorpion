@@ -8,7 +8,9 @@
 #define GOTO_OFFSET 3.0
 #define THETA_THRES 0.05
 #define DEFAULT_SPEED 0.1
+#define DEFAULT_TURN_SPEED 0.2
 #define GOOD_ENOUGH_POS 3.0
+#define GOOD_ENOUGH_ANGLE 0.05
 
 class DriveCtl{
 public:
@@ -16,9 +18,13 @@ public:
 
     Particle reset();
     Particle pose();
-    void gotoPose(Particle position);
-    void turn(double rads);
-    void drive(double dist);
+    Particle gotoPose(Particle position, void *data = NULL,
+            bool (*callback)(Particle, void*) = NULL);
+    Particle turn(double rads, void *data = NULL,
+            bool (*callback)(Particle, void*) = NULL);
+    Particle drive(double dist, void *data = NULL,
+            bool (*callback)(Particle, void*) = NULL);
+    void setPose(Particle pos);
 
 private:
     PlayerCc::PlayerClient *robot;

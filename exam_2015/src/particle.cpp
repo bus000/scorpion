@@ -59,7 +59,7 @@ void Particle::sub(Particle other) {
 void Particle::subTheta(Particle other) {
   _x -= other.x();
   _y -= other.y();
-  _theta = other.theta();
+  _theta -= other.theta();
   overRunTheta();
 }
 
