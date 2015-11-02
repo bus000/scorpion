@@ -1,6 +1,7 @@
 #include "../src/irSensors.hpp"
 #include "../src/particle.hpp"
 #include "../src/driveCtl.hpp"
+#include <unistd.h>
 
 using namespace PlayerCc;
 
@@ -13,19 +14,34 @@ int main(int argc, char const *argv[])
     IRSensors irSensors(&robot);
     DriveCtl driveController(&robot, &position);
 
-    while (true) {
-        vector<Particle> res = irSensors.getObstacles();
-        printf("number of sensors sensing something is %d\n", res.size());
+    //while (true) {
+        //vector<Particle> res = irSensors.getObstacles();
+        //printf("number of sensors sensing something is %d\n", res.size());
 
-        for (int i = 0; i < res.size(); i++) {
-            Particle par = res.at(i);
-            printf("object spotted at (%f, %f), len: %f\n", par.x(), par.y(),
-                    sqrt(par.x() * par.x() + par.y() * par.y()));
-        }
+        //for (int i = 0; i < res.size(); i++) {
+            //Particle par = res.at(i);
+            //printf("object spotted at (%f, %f), len: %f\n", par.x(), par.y(),
+                    //sqrt(par.x() * par.x() + par.y() * par.y()));
+        //}
 
-        cout << "Press enter to continue" << endl;
-        cin.ignore();
+        //cout << "Press enter to continue" << endl;
+        //cin.ignore();
+    //}
+
+    vector<Particle> squarePath;
+
+    squarePath.push_back(Particle(100.0,0.0,0.0));
+    squarePath.push_back(Particle(100.0,100.0,0.0));
+    squarePath.push_back(Particle(0.0,100.0,0.0));
+    squarePath.push_back(Particle(0.0,0.0,0.0));
+
+    for(int i = 1; i < 11; i++)
+    {
+        Particle goTo(i * 10.0, 0.0);
+        driveController.gotoPose(goTo);
+        usleep(3000);
     }
+
 
     return EXIT_SUCCESS;
 }

@@ -10,6 +10,7 @@
 #define STRAIGHT_COST 10
 #define DIAGONAL_COST 14
 #define BESIDE_COST   50
+#define PROB_ADJUST   10.0
 
 using namespace std;
 
@@ -53,17 +54,18 @@ private:
 
 class WorldMap {
 public:
-    WorldMap(int numSqWidth, int numSqHeight, int sqSize);
+    WorldMap(int numSqWidth, int numSqHeight, int sqSize,
+            vector<Particle> landmarks);
     ~WorldMap();
-    void field(int col, int row, bool mark);
-    bool& field(int col, int row);
+    void field(int col, int row, double prob);
+    double& field(int col, int row);
 
-    void markFrom(Particle robot, Particle obstacle);
+    void markFrom(Particle robot, Particle obstacle, double prob);
     //[col][row]
-    bool* operator[] (int col);
+    double* operator[] (int col);
     int getRowFromY(double y);
     int getColFromX(double x);
-    bool& fieldAt(double x, double y);
+    double& fieldAt(double x, double y);
     void clear();
     void print();
     void print(vector<Particle> &path, Particle curPos);
@@ -74,14 +76,17 @@ public:
     double width();
     double height();
 
-    bool besideObstacle(int col, int row);
+    double besideObstacle(int col, int row);
 
-    vector<Particle> findPath( Particle &start
-            , Particle &goal
-            );
+    vector<Particle> findPath( Particle &start , Particle &goal);
+
+    /* Decrease the probability of there being an object by 10% in all
+     * fields. */
+    void decreaseProb(double percent = 10.0);
+
 
 private:
-    bool *map;
+    double *map;
 
     int _sqSize;
     int _width;
@@ -90,6 +95,7 @@ private:
     int _numSqHeight;
 
     vector<PathNode*> getWalkable(int x, int y, int goalX, int goalY);
+    vector<Particle> landmarks;
 };
 
 #endif
