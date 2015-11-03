@@ -7,25 +7,26 @@
 #include <cmath>
 #include "camera.hpp"
 #include "particleFilter.hpp"
+#include "mapPresenter.hpp"
 
-void updateMap(IRSensors &sensors, WorldMap &map, Particle robot) {
-    vector<Particle> obstacles = sensors.getObstaclePosition(robot);
-
-    for (int i = 0; i < obstacles.size(); i++) {
-        Particle obstacle = obstacles.at(i);
-        map.markFrom(robot, obstacle);
-    }
-}
-
-Particle getNext(vector<Particle> path, Particle robotPos)
-{
-    path.insert(path.begin(), robotPos);
-    vector<Particle> interpolatedPath = interpolatePath(path, 3);
-    interpolatedPath.erase(interpolatedPath.begin());
-    Particle nextStep = interpolatedPath.at(0);
-
-    return nextStep;
-}
+//void updateMap(IRSensors &sensors, WorldMap &map, Particle robot) {
+//    vector<Particle> obstacles = sensors.getObstaclePosition(robot);
+//
+//    for (int i = 0; i < obstacles.size(); i++) {
+//        Particle obstacle = obstacles.at(i);
+//        map.markFrom(robot, obstacle);
+//    }
+//}
+//
+//Particle getNext(vector<Particle> path, Particle robotPos)
+//{
+//    path.insert(path.begin(), robotPos);
+//    vector<Particle> interpolatedPath = interpolatePath(path, 3);
+//    interpolatedPath.erase(interpolatedPath.begin());
+//    Particle nextStep = interpolatedPath.at(0);
+//
+//    return nextStep;
+//}
 
 //int main(int argc, char *argv[])
 //{
@@ -142,37 +143,110 @@ Particle getNext(vector<Particle> path, Particle robotPos)
 //
 //}
 
-int main(int argc, char **argv){
-    cv::namedWindow("window");
-    std::vector<Particle> particles;
-    WorldMap map(50, 50, 10);
-    MapPresenter presenter(&map);
+//int main(int argc, char **argv){
+//    cv::namedWindow("window");
+//    std::vector<Particle> particles;
+//    WorldMap map(50, 50, 10);
+//    MapPresenter presenter(&map);
+//
+//    ParticleFilter filter(&particles, &map, 0.0,0.0);
+//    filter.addRandomParticles(10000);
+//    Camera camera(441.575145, 431.531452, 640.0);
+//    map[30][40] = true;
+//	map[0][40] = true;
+//	map[0][0] = true;
+//	map[30][0] = true;
+//
+//    while(true){
+//        Measurement meas = camera.measure(true);
+//        filter.filter(meas);
+//        cv::Mat img = presenter.draw();
+//        
+//        double rX, rY, rTheta = 0;
+//        for(int i = 0; i < particles.size(); i++){
+//            rX += particles[i].x();
+//            rY += particles[i].y();
+//            rTheta += particles[i].theta();
+//            presenter.drawRobot(img, particles[i], cv::Scalar(0x0,0x0,0xff));
+//        }
+//        rX /= (double)particles.size();
+//        rY /= (double)particles.size();
+//        rTheta /= (double)particles.size();
+//        Particle robot(rX,rY,rTheta);
+//        presenter.drawRobot(img, robot, cv::Scalar(0x0,0x0,0x00));  
+//        cv::imshow("window", img);
+//     }
+//}
 
-    ParticleFilter filter(&particles, &map, 0.0,0.0);
-    filter.addRandomParticles(10000);
+struct testData {
+    Camera *camera;
+    ParticleFilter *filter;
+    vector<Particle> *particles;
+    Particle prevPose;
+    MapPresenter *presenter;
+};
+
+unsigned long timing(){
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    return 1000000 * tv.tv_sec + tv.tv_usec;
+}
+
+bool callback(Particle command, void *_data){
+    testData *data = (testData*)_data;
+    Measurement meas = data->camera->measure(true);
+    data->filter->filter(meas, command);
+
+    unsigned long t = timing();
+    cv::Mat img = data->presenter->draw();
+
+    double rX, rY, rTheta = 0;
+    for(int i = 0; i < data->particles->size(); i++){
+        rX += data->particles->at(i).x();
+        rY += data->particles->at(i).y();
+        rTheta += data->particles->at(i).theta();
+        data->presenter->drawRobot(img, data->particles->at(i), cv::Scalar(0x0,0x0,0xff));
+    }
+    rX /= (double)data->particles->size();
+    rY /= (double)data->particles->size();
+    rTheta /= (double)data->particles->size();
+    Particle robot(rX,rY,rTheta);
+    data->presenter->drawRobot(img, robot, cv::Scalar(0x0,0x0,0x00));  
+    printf("Timing is: %u\n", timing()-t);
+    cv::imshow("window", img);
+
+    return true;
+}
+
+int main(int argc, char **argv){
+    //PlayerCc::PlayerClient robot("192.168.240.129");
+    //PlayerCc::PlayerClient robot("192.168.100.253");
+    PlayerCc::PlayerClient robot("localhost");
+
+    PlayerCc::Position2dProxy position(&robot);
+    robot.SetDataMode(PLAYER_DATAMODE_PULL);
+    robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
+
+    vector<Particle> landmarks;
+    landmarks.push_back(Particle(5,5));
+
+    WorldMap map(15, 15, 50, landmarks);
+    MapPresenter presenter(&map);
+    DriveCtl driveCtl(&robot, &position);
+
     Camera camera(441.575145, 431.531452, 640.0);
-    map[30][40] = true;
-	map[0][40] = true;
-	map[0][0] = true;
-	map[30][0] = true;
+    vector<Particle> particles;
+    ParticleFilter filter(&particles, &map, 0.0,0.0);
+    filter.addRandomParticles(100000);
+    cv::namedWindow("window");
+
+    testData data;
+    data.camera = &camera;
+    data.filter = &filter;
+    data.particles = &particles;
+    data.presenter = &presenter;
 
     while(true){
-        Measurement meas = camera.measure(true);
-        filter.filter(meas);
-        cv::Mat img = presenter.draw();
-        
-        double rX, rY, rTheta = 0;
-        for(int i = 0; i < particles.size(); i++){
-            rX += particles[i].x();
-            rY += particles[i].y();
-            rTheta += particles[i].theta();
-            presenter.drawRobot(img, particles[i], cv::Scalar(0x0,0x0,0xff));
-        }
-        rX /= (double)particles.size();
-        rY /= (double)particles.size();
-        rTheta /= (double)particles.size();
-        Particle robot(rX,rY,rTheta);
-        presenter.drawRobot(img, robot, cv::Scalar(0x0,0x0,0x00));  
-        cv::imshow("window", img);
-     }
+        driveCtl.turn(M_PI, (void*)&data, &callback);
+    }
 }
