@@ -76,22 +76,27 @@ Particle DriveCtl::turn(double rads, void *data, bool(*callback)(Particle, void*
         sign = -1.0;
     positionProxy->SetSpeed(0.0,DEFAULT_TURN_SPEED*sign);
 
-    double lastDiff = -1.0;
+    Particle lastDiff = odo;
+    lastDiff.subTheta(goal); 
+    
     while(true){
+        // diff < lastDiff
         Particle diff = odometryParticle();
         diff.subTheta(goal);
 
+        Particle delta = lastDiff;
+        delta.subTheta(diff);
+
         printf("AngleDiff: %f\n", -1.0*diff.theta());
 
-        if(fabs(diff.theta()) < GOOD_ENOUGH_ANGLE)
+        if (fabs(diff.theta()) < GOOD_ENOUGH_ANGLE)
             break;
-        if(lastDiff > 0.0 && fabs(diff.theta()) > lastDiff+GOOD_ENOUGH_ANGLE)
+        if (delta.theta() > DELTA_ANGLE_STOP)
             break;
-        else
-            lastDiff = fabs(diff.theta());
+        if(callback != NULL && !callback(delta, data))
+            break;
 
-        if(callback != NULL && !callback(pose(), data))
-            break;
+        lastDiff = diff;
     }
 
     positionProxy->SetSpeed(0, 0);
@@ -99,10 +104,9 @@ Particle DriveCtl::turn(double rads, void *data, bool(*callback)(Particle, void*
     return pose();
 }
 
-Particle DriveCtl::drive(double dist, void *data,
-            bool (*callback)(Particle, void*)) {
-    //dist = dist / 100.0;
-
+Particle DriveCtl::drive( double dist
+                        , void *data
+                        , bool (*callback)(Particle, void*)) {
     Particle odo = odometryParticle();
 
     Particle unit = Particle::createUnit(odo.theta());
@@ -113,26 +117,25 @@ Particle DriveCtl::drive(double dist, void *data,
 
     positionProxy->SetSpeed(DEFAULT_SPEED, 0);
 
-    double lastDiff = -1.0;
+    Particle lastDiff = final;
+    lastDiff.sub(odo);
+
     while(true) {
+        // diff < lastDiff
         Particle diff = final;
         diff.sub(odometryParticle());
 
-        printf("Diff: l: %f, (%f, %f, %f)\n", diff.length()
-                , diff.x()
-                , diff.y()
-                , diff.theta()
-              );
+        Particle delta = lastDiff;
+        delta.sub(diff);
 
         if (diff.length() < GOOD_ENOUGH_POS)
             break;
-        if(lastDiff > 0.0 && diff.length() > lastDiff+0.2)
+        if (delta.length() < DELTA_POS_STOP);
             break;
-        else
-            lastDiff = diff.length();
+        if (callback != NULL && !callback(delta, data))
+            break;
 
-        if(callback != NULL && !callback(pose(), data))
-            break;
+        lastDiff = diff;
     }
 
 
