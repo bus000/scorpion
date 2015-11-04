@@ -47,7 +47,8 @@ class Measurement {
 
 class Camera {
   public:
-    Camera(double fx, double fy, double cx, bool showGui = true);
+    Camera(double fx, double fy, double cx);
+    Camera(double fx, double fy, double cx, bool showGui);
     ~Camera();
 
     Measurement measure(bool showGui);

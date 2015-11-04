@@ -11,7 +11,7 @@ int main() {
   Camera camera(1063.256, 1071.611, 680.882);
 
   while(true) {
-     camera.measure();
+     camera.measure(true);
   }
 
   return 0;

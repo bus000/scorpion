@@ -10,6 +10,25 @@ void* measureThread(void *data){
         thisObj->newMeasure = true;
         pthread_mutex_unlock(&thisObj->meas_mutex);
     }
+
+    return NULL;
+}
+
+Camera::Camera(double fx, double fy, double cx) {
+    VideoCapture *vcap = new VideoCapture(CV_CAP_ANY);
+
+    this->videoCapture = vcap;
+    this->fx = fx;
+    this->fy = fy;
+    this->cx = cx;
+    this->newMeasure = false;
+    
+    if (!vcap->isOpened()) {
+      cerr << "Failed to open camera" << endl;
+    }
+
+    
+    namedWindow(CAMERA_WINDOW, CV_WINDOW_NORMAL);
 }
 
 Camera::Camera(double fx, double fy, double cx, bool showGui) {
@@ -69,6 +88,7 @@ Measurement Camera::measure(bool showGui) {
     vcap->read(frame);
 
     // enhanceContrast(frame, frame);
+    resize(frame, frame, Size(0, 0), 0.5, 0.5);
 
     // Find checkerboard
     Mat gray;
@@ -153,8 +173,8 @@ Measurement Camera::measure(bool showGui) {
     Point poly[] = {
         Point(corners[0].x,  corners[0].y),
         Point(corners[2].x,  corners[2].y),
-        Point(corners[9].x,  corners[9].y),
         Point(corners[11].x, corners[11].y),
+        Point(corners[9].x,  corners[9].y)
     };
 
     Mat mask = Mat::zeros(frame.rows, frame.cols, CV_8U);
@@ -162,6 +182,8 @@ Measurement Camera::measure(bool showGui) {
     fillConvexPoly(mask, poly, 4, Scalar(255, 255, 255));
 
     Scalar meanColor = mean(frame, mask);
+
+    fillConvexPoly(frame, poly, 4, Scalar(255, 255, 255));
     
     double red   = meanColor.val [2];
     double green = meanColor.val [1];
