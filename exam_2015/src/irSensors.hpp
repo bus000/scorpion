@@ -58,6 +58,9 @@ public:
 
     vector<Particle> getObstaclePosition(Particle robotPos);
 
+    bool obstacleInFront();
+    Particle escapeVector();
+
 private:
     /* Private methods. */
     double sensorValueToCM(double sensorValue);

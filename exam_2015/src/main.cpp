@@ -9,6 +9,8 @@
 #include "particleFilter.hpp"
 #include "mapPresenter.hpp"
 
+#define LANDMARK_STOP 115.0
+
 Particle landmark1(200.0, 200.0);
 Particle landmark2(200.0, 500.0);
 Particle landmark3(600.0, 200.0);
@@ -32,8 +34,10 @@ struct testData {
     MapPresenter *presenter;
     Particle *landmark;
     Particle *robot;
+    //IRSensors *irSensor;
     //Internal data
     vector<Particle> landmarksSeen;
+    bool inFront;
 };
 
 unsigned long timing(){
@@ -59,19 +63,31 @@ bool driveAndMeasure(Particle command, void *_data){
     testData *data = (testData*)_data;
     Measurement meas;
     meas.invalid = true;
+    data->inFront = false;
     if(data->camera->hasMeasurement())
         meas = data->camera->getMeasurement();
 
     data->filter->filter(meas, command);
+    if(data->filter->resetFlag)
+        return false;
 
     draw(data->presenter, data->particles, data->filter->believe);
     
-    if(!meas.invalid && meas.measurement.length() < 75.0)
+    if(!meas.invalid && meas.measurement.length() < LANDMARK_STOP)
         return false;
+
+    //if(!data->irSensor->obstacleInFront()){
+    //    data->inFront = true;
+    //    return false;
+    //}
 
     if(!meas.invalid){
         for(int i = 0; i < data->landmarksSeen.size(); i++){
-            
+            if(!data->landmarksSeen[i].compareCoord(meas.position))
+                data->landmarksSeen.push_back(meas.position);
+            if(data->landmarksSeen.size() > 1
+                    && meas.position.compareCoord(*data->landmark))
+                return false;
         }
     }
 
@@ -121,12 +137,13 @@ bool deltaTest(Particle delta, void *_data){
 }
 
 int main(int argc, char **argv){
-    PlayerCc::PlayerClient robot("192.168.100.253");
-    //PlayerCc::PlayerClient robot("localhost");
+    //PlayerCc::PlayerClient robot("192.168.100.254");
+    PlayerCc::PlayerClient robot("localhost");
 
     PlayerCc::Position2dProxy position(&robot);
     robot.SetDataMode(PLAYER_DATAMODE_PULL);
     robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
+    //IRSensors irSensor(&robot, 5);
 
     vector<Particle> landmarks;
     landmarks.push_back(landmark1);
@@ -138,7 +155,7 @@ int main(int argc, char **argv){
     MapPresenter presenter(&map);
     DriveCtl driveCtl(&robot, &position);
 
-    Camera camera(1089.094385, 1042.647751, 640.0);
+    Camera camera(1089.094385, 1042.647751, 640.0, true);
     vector<Particle> particles;
     ParticleFilter filter(&particles, &map, 0.0,0.0);
     filter.addRandomParticles(10000);
@@ -149,6 +166,7 @@ int main(int argc, char **argv){
     data.filter = &filter;
     data.particles = &particles;
     data.presenter = &presenter;
+    //data.irSensor = &irSensor;
 
 
     ///////////////////////////////////////////////////////////////////
@@ -171,13 +189,19 @@ int main(int argc, char **argv){
         Particle diff = target;
         diff.sub(believe);
 
-        if(diff.length() > 75.0){
+        if(diff.length() > LANDMARK_STOP){
             diff.normalize();
             diff.scale(150.0);
             diff.add(believe);
             driveCtl.setPose(believe);
             cout << "diff: (" << diff.x() << ", " << diff.y() << ")" << endl;
             driveCtl.gotoPose(diff, (void*)&data, &driveAndMeasure);
+            //if(data.inFront){
+            //    Particle escape = irSensor.escapeVector();
+            //    cout << "we are escaping!!!" << endl;
+            //    cout << "length: " << escape.length() << endl;
+            //    cout << "angle: " << escape.angle() << endl;
+            //}
         }else{
             if(targetNo == 3){
                 //Never gonna happen

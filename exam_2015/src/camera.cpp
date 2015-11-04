@@ -87,9 +87,6 @@ Measurement Camera::measure(bool showGui) {
     // Read frame from webcam
     vcap->read(frame);
 
-    // enhanceContrast(frame, frame);
-    resize(frame, frame, Size(0, 0), 0.5, 0.5);
-
     // Find checkerboard
     Mat gray;
     cvtColor(frame, gray, CV_BGR2GRAY);

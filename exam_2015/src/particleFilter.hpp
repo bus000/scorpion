@@ -10,6 +10,7 @@ public:
     void filter(Measurement measurement, Particle command = Particle(0,0));
     void addRandomParticles(int limit);
     Particle believe;
+    bool resetFlag;
 
 private:
     std::vector<Particle> *_particles;

@@ -10,6 +10,7 @@ ParticleFilter::ParticleFilter(std::vector<Particle> *particles,
     _fallbackDistVar = fallbackDistVar;
     _fallbackAngleVar = fallbackAngleVar;
     _map = map;
+    this->resetFlag = false;
 }
 
 void ParticleFilter::filter(Measurement measurement, Particle command){
@@ -27,7 +28,10 @@ void ParticleFilter::filter(Measurement measurement, Particle command){
         _particles->erase(_particles->begin()+resampleLimit, _particles->end()); 
         addRandomParticles(newParticlesLimit);
         observationModel(measurement);
+
         mergeAndNormalizeWeights();
+        if(this->resetFlag)
+            return;
     }else{
         resetWeights();
     }
@@ -57,28 +61,21 @@ void ParticleFilter::mergeAndNormalizeWeights(){
     double totalWeightSum = 0;
     for(int i = 0; i < _particles->size(); i++){
         _particles->at(i).weight(_distanceWeights[i]*_angleWeights[i]);
-        distWeightSum += _distanceWeights[i];
-        angleWeightSum += _angleWeights[i];
         totalWeightSum += _distanceWeights[i]*_angleWeights[i];
     }
 
     for(int i = 0; i < _particles->size(); i++){
-        if(distWeightSum == 0.0){
-            _particles->at(i).weight(_angleWeights[i]/angleWeightSum);
-        }else if(angleWeightSum == 0.0){
-            _particles->at(i).weight(_distanceWeights[i]/distWeightSum);
-        }else{
-            _particles->at(i).weight(_particles->at(i).weight()/totalWeightSum);
-            continue;
-        }
-
-        _particles->at(i).addNoise(10.0, 0.1);
-
+        _particles->at(i).weight(_particles->at(i).weight()/totalWeightSum);
         if(_particles->at(i).weight() != _particles->at(i).weight()){
-            std::cout << "FUCKING NaN\n";
-            exit(0);
+            int numbParticles = _particles->size();
+            _particles->clear();
+            addRandomParticles(numbParticles);
+            resetFlag = true;
+            std::cout << "Resetting particles!!!" << std::endl;
+            return;
         }
     }
+    resetFlag = false;
 }
 
 void ParticleFilter::updateVariance(Measurement measurement){

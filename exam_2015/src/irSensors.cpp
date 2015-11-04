@@ -22,6 +22,49 @@ IRSensors::IRSensors(PlayerCc::PlayerClient *robot, unsigned int filterStrength)
 
 }
 
+bool IRSensors::obstacleInFront(){
+    vector<Particle> obstacles = this->getObstacles();
+
+    for(int i = 0; i < obstacles.size(); i++){
+        if(obstacles[i].length() < 30.0)
+                return true;
+    }
+
+    return false;
+}
+
+Particle IRSensors::escapeVector() {
+    double sensorData[SENSOR_NUM] = {0};
+    double distance;
+    double average;
+
+    Particle escape(0, 0, 0);
+
+    for (int i = 0; i < this->filterStrength; i++) {
+        this->robot->Read();
+        for (int j = 0; j < SENSOR_NUM; j++)
+            sensorData[j] += irProxy->GetRange(j);
+    }
+
+    for (int i = 0; i < SENSOR_NUM; i++) {
+        if (i == IR_te_nne || i == IR_te_nnw ||
+            i == IR_tw_nne || i == IR_tw_nnw ||
+            i == IR_bs_w   || i == IR_bs_e   ||
+            i == IR_bw_s   || i == IR_be_s)
+            continue;   
+
+        average = sensorData[i] / (double) this->filterStrength;
+
+        distance = sensorValueToCM(average);
+        Particle angle = this->sensorAngle(i);
+        angle.scale(distance);
+
+        escape.add(angle);
+    }
+
+    return escape;
+}
+
 vector<Particle> IRSensors::getObstacles(void)
 {
     vector<Particle> result;
@@ -36,16 +79,19 @@ vector<Particle> IRSensors::getObstacles(void)
     }
 
     for (int i = 0; i < SENSOR_NUM; i++) {
+        if (i == IR_te_nne || i == IR_te_nnw ||
+            i == IR_tw_nne || i == IR_tw_nnw ||
+            i == IR_bs_w   || i == IR_bs_e   ||
+            i == IR_bw_s   || i == IR_be_s)
+            continue;   
+
         average = sensorData[i] / (double) this->filterStrength;
         if (average > CUTOFF)
             continue;
 
         distance = sensorValueToCM(average);
         Particle angle = this->sensorAngle(i);
-        Particle position = this->sensorPosition(i);
         angle.scale(distance);
-        angle.move(position.x(), position.y(), 0.0);
-        angle.addLength(-10.0);
 
         result.push_back(angle);
     }
@@ -62,31 +108,31 @@ Particle IRSensors::sensorAngle(int sensor)
 {
     switch (sensor) {
     case IrEastNorthEast:
-        return Particle(sin(20.0 * M_PI / 180.0), cos(20.0 * M_PI / 180.0));
+        return Particle(cos(20.0 * M_PI / 180.0), sin(20.0 * M_PI / 180.0));
     case IrWestNorthWest:
-        return Particle(sin(160.0 * M_PI / 180.0), cos(160.0 * M_PI / 180.0));
+        return Particle(cos(160.0 * M_PI / 180.0), sin(160.0 * M_PI / 180.0));
     case IrNorth:
-        return Particle(sin(90.0 * M_PI / 180.0), cos(90.0 * M_PI / 180.0));
+        return Particle(cos(90.0 * M_PI / 180.0), sin(90.0 * M_PI / 180.0));
     case IrNorthEast:
-        return Particle(sin(45.0 * M_PI / 180.0), cos(45.0 * M_PI / 180.0));
+        return Particle(cos(45.0 * M_PI / 180.0), sin(45.0 * M_PI / 180.0));
     case IrNorthWest:
-        return Particle(sin(135.0 * M_PI / 180.0), cos(135.0 * M_PI / 180.0));
+        return Particle(cos(135.0 * M_PI / 180.0), sin(135.0 * M_PI / 180.0));
     case IrNarrowNorthNorthWest:
-        return Particle(sin(105.0 * M_PI / 180.0), cos(105.0 * M_PI / 180.0));
+        return Particle(cos(105.0 * M_PI / 180.0), sin(105.0 * M_PI / 180.0));
     case IrNarrowNorthNorthEast:
-        return Particle(sin(75.0 * M_PI / 180.0), cos(75.0 * M_PI / 180.0));
+        return Particle(cos(75.0 * M_PI / 180.0), sin(75.0 * M_PI / 180.0));
     case IrCenterNorthNorthWest:
-        return Particle(sin(105.0 * M_PI / 180.0), cos(105.0 * M_PI / 180.0));
+        return Particle(cos(105.0 * M_PI / 180.0), sin(105.0 * M_PI / 180.0));
     case IrCenterNorthNorthEast:
-        return Particle(sin(75.0 * M_PI / 180.0), cos(75.0 * M_PI / 180.0));
+        return Particle(cos(75.0 * M_PI / 180.0), sin(75.0 * M_PI / 180.0));
     case IrWest:
-        return Particle(sin(180.0 * M_PI / 180.0), cos(180.0 * M_PI / 180.0));
+        return Particle(cos(180.0 * M_PI / 180.0), sin(180.0 * M_PI / 180.0));
     case IrEast:
-        return Particle(sin(0.0 * M_PI / 180.0), cos(0.0 * M_PI / 180.0));
+        return Particle(cos(0.0 * M_PI / 180.0), sin(0.0 * M_PI / 180.0));
     case IrSouthLeft:
-        return Particle(sin(-90.0 * M_PI / 180.0), cos(-90.0 * M_PI / 180.0));
+        return Particle(cos(-90.0 * M_PI / 180.0), sin(-90.0 * M_PI / 180.0));
     case IrSouthRight:
-        return Particle(sin(-90.0 * M_PI / 180.0), cos(-90.0 * M_PI / 180.0));
+        return Particle(cos(-90.0 * M_PI / 180.0), sin(-90.0 * M_PI / 180.0));
     default:
         fprintf(stderr, "err: unknown IR sensor with ID %d\n", sensor);
         return Particle(0.0, 0.0);
