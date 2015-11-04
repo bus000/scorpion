@@ -86,8 +86,8 @@ Particle DriveCtl::turn(double rads, void *data, bool(*callback)(Particle, void*
 
         Particle delta = lastDiff;
         delta.subTheta(diff);
-
-        printf("AngleDiff: %f\n", -1.0*diff.theta());
+        delta.x(0);
+        delta.y(0);
 
         if (fabs(diff.theta()) < GOOD_ENOUGH_ANGLE)
             break;
@@ -115,6 +115,7 @@ Particle DriveCtl::drive( double dist
     Particle final = odo;
     final.add(unit);
 
+    Particle lastPose = pose();
     positionProxy->SetSpeed(DEFAULT_SPEED, 0);
 
     Particle lastDiff = final;
@@ -122,29 +123,27 @@ Particle DriveCtl::drive( double dist
 
     while(true) {
         // diff < lastDiff
+        Particle currentPose = pose();
         Particle diff = final;
         diff.sub(odometryParticle());
 
-        Particle delta = lastDiff;
-        delta.sub(diff);
+        Particle delta = currentPose;
+        delta.sub(lastPose);
+        delta.theta(0);
 
         if (diff.length() < GOOD_ENOUGH_POS)
             break;
-        if (delta.length() < DELTA_POS_STOP);
+        if (diff.length() > lastDiff.length() + DELTA_POS_STOP)
             break;
         if (callback != NULL && !callback(delta, data))
             break;
 
         lastDiff = diff;
+        lastPose = currentPose;
     }
 
 
     Particle p = pose();
-    printf("pose: l: %f, (%f, %f, %f)\n", p.length()
-            , p.x()
-            , p.y()
-            , p.theta()
-          );
 
     positionProxy->SetSpeed(0, 0);
     usleep(100000);

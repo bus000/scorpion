@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <pthread.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
@@ -46,10 +47,19 @@ class Measurement {
 
 class Camera {
   public:
-    Camera(double fx, double fy, double cx);
+    Camera(double fx, double fy, double cx, bool showGui = true);
     ~Camera();
 
-    Measurement measure(bool showGui = true);
+    Measurement measure(bool showGui);
+    pthread_mutex_t meas_mutex;
+    pthread_mutex_t stop;
+
+    Measurement lastMeas;
+    bool newMeasure;
+    bool gui;
+
+    Measurement getMeasurement();
+    bool hasMeasurement();
 
   private:
     void enhanceContrast(Mat &frame, Mat &target);
@@ -58,6 +68,7 @@ class Camera {
     double fx;
     double fy;
     double cx;
+    pthread_t thread;
 
     // OpenCV webcam video capture
     VideoCapture *videoCapture;

@@ -75,8 +75,8 @@ void Particle::scale(double factor){
 
 void Particle::normalize(){
     double length = this->length();
-    _x *= length;
-    _y *= length;
+    _x /= length;
+    _y /= length;
 }
 
 double Particle::length(){
@@ -196,4 +196,8 @@ vector<Particle> interpolatePath(vector<Particle> &path, int steps){
       interpolated.push_back(path[path.size() - 1]);
 
     return interpolated;
+}
+
+bool Particle::compareCoord(Particle p){
+    return (this->x() == p.x() && this->y() == p.y());
 }

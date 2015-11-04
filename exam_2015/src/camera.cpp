@@ -1,12 +1,26 @@
 #include "camera.hpp"
+#include  <cerrno>
 
-Camera::Camera(double fx, double fy, double cx) {
+void* measureThread(void *data){
+    Camera *thisObj = (Camera*)data;
+    while(pthread_mutex_trylock(&thisObj->stop) == EBUSY){
+        Measurement meas = thisObj->measure(thisObj->gui);
+        pthread_mutex_lock(&thisObj->meas_mutex);
+        thisObj->lastMeas = meas;
+        thisObj->newMeasure = true;
+        pthread_mutex_unlock(&thisObj->meas_mutex);
+    }
+}
+
+Camera::Camera(double fx, double fy, double cx, bool showGui) {
     VideoCapture *vcap = new VideoCapture(CV_CAP_ANY);
 
     this->videoCapture = vcap;
     this->fx = fx;
     this->fy = fy;
     this->cx = cx;
+    this->gui = showGui;
+    this->newMeasure = false;
     
     if (!vcap->isOpened()) {
       cerr << "Failed to open camera" << endl;
@@ -14,10 +28,34 @@ Camera::Camera(double fx, double fy, double cx) {
 
     
     namedWindow(CAMERA_WINDOW, CV_WINDOW_NORMAL);
+
+    pthread_mutex_init(&this->meas_mutex, NULL);
+    pthread_mutex_init(&this->stop, NULL);
+    pthread_mutex_lock(&this->stop);
+    pthread_create(&this->thread, NULL, &measureThread, (void*)this);
 }
 
 Camera::~Camera() {
+    pthread_mutex_unlock(&this->stop);
+    pthread_join(this->thread, NULL);
+    pthread_mutex_destroy(&this->stop);
+    pthread_mutex_destroy(&this->meas_mutex);
+}
 
+bool Camera::hasMeasurement(){
+    bool answer;
+    pthread_mutex_lock(&this->meas_mutex);
+    answer = this->newMeasure;
+    pthread_mutex_unlock(&this->meas_mutex);
+    return answer;
+}
+
+Measurement Camera::getMeasurement(){
+    Measurement retVal;
+    pthread_mutex_lock(&this->meas_mutex);
+    retVal = this->lastMeas;
+    pthread_mutex_unlock(&this->meas_mutex);
+    return retVal;
 }
 
 Measurement Camera::measure(bool showGui) {
@@ -140,12 +178,12 @@ Measurement Camera::measure(bool showGui) {
     bool isRed = red > green;
 
     if (horizontal) {
-      if (isRed)  position = Particle(300, 400);  // L4
-      if (!isRed) position = Particle(0, 400);    // L3
+      if (isRed)  position = Particle(600, 500);  // L4
+      if (!isRed) position = Particle(600, 200);    // L3
     }
     else {
-      if (isRed)  position = Particle(0, 0);      // L1
-      if (!isRed) position = Particle(300, 0);    // L2
+      if (isRed)  position = Particle(200, 200);      // L1
+      if (!isRed) position = Particle(200, 500);    // L2
     }
 
     // Calculate distance and angle particle (vector)

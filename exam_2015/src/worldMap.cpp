@@ -19,7 +19,10 @@ WorldMap::WorldMap(int numSqWidth, int numSqHeight, int sqSize,
         Particle landmark = landmarks.at(i);
         Particle mapPosition(this->getColFromX(landmark.x()),
                 this->getRowFromY(landmark.y()));
+        std::cout << "(" << mapPosition.x() << ", " << mapPosition.y() << ")"
+            << std::endl << std::flush;
         this->landmarks.push_back(mapPosition);
+        this->field(mapPosition.x(), mapPosition.y(), 500.0);
     }
 
     clear();
@@ -31,9 +34,13 @@ WorldMap::~WorldMap(){
 
 void WorldMap::decreaseProb(double percent)
 {
-    for (int x = 0; x < this->_numSqWidth; x++)
-        for (int y = 0; y < this->_numSqHeight; y++)
+    for (int x = 0; x < this->_numSqWidth; x++){
+        for (int y = 0; y < this->_numSqHeight; y++){
             field(x, y, field(x, y) * (percent / 100.0));
+            if(field(x, y) < 0.001)
+                field(x,y,0);
+        }
+    }
 
     /* Set landmark positions as infinate. */
     for (int i = 0; i < this->landmarks.size(); i++) {
@@ -43,7 +50,7 @@ void WorldMap::decreaseProb(double percent)
 }
 
 void WorldMap::clear(){
-    memset(map, 0, _numSqWidth*_numSqHeight);
+    memset(map, 0, _numSqWidth*_numSqHeight*sizeof(double));
 }
 
 void WorldMap::field(int col, int row, double prob){

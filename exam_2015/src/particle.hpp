@@ -42,6 +42,8 @@ public:
     double y();
     double theta();
     double weight();
+
+    bool compareCoord(Particle p);
 private:
     double _x, _y, _theta, _weight;
     void overRunTheta();

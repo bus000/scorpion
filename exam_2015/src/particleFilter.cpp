@@ -1,5 +1,7 @@
 #include "particleFilter.hpp"
 #include <iostream>
+#include <cstdlib>
+#include <fstream>
 
 ParticleFilter::ParticleFilter(std::vector<Particle> *particles,
         WorldMap *map, double fallbackDistVar, double fallbackAngleVar) {
@@ -11,39 +13,71 @@ ParticleFilter::ParticleFilter(std::vector<Particle> *particles,
 }
 
 void ParticleFilter::filter(Measurement measurement, Particle command){
-    int resampleLimit = _particles->size()*0.995;
-    int newParticlesLimit = _particles->size()-resampleLimit;
+    int resampleLimit = _particles->size();
     _angleWeights.assign(_particles->size(), 0.0);
     _distanceWeights.assign(_particles->size(), 0.0);
 
     //substitute x% procent of the particles with random ones
-    _particles->erase(_particles->begin()+resampleLimit, _particles->end()); 
-    addRandomParticles(newParticlesLimit);
 
     dynamicModel(command);
     updateVariance(measurement);
     if(!measurement.invalid){
+        resampleLimit *= 0.9999;
+        int newParticlesLimit = _particles->size()-resampleLimit;
+        _particles->erase(_particles->begin()+resampleLimit, _particles->end()); 
+        addRandomParticles(newParticlesLimit);
         observationModel(measurement);
         mergeAndNormalizeWeights();
     }else{
         resetWeights();
     }
 
-
     resample(_particles->size());
+    calcBelieve();
+}
+
+void ParticleFilter::calcBelieve(){
+    double rX = 0, rY = 0, rTheta = 0;
+    for(int i = 0; i < _particles->size(); i++){
+        rX += _particles->at(i).x();
+        rY += _particles->at(i).y();
+        rTheta += _particles->at(i).theta();
+    }
+    rX /= (double)_particles->size();
+    rY /= (double)_particles->size();
+    rTheta /= (double)_particles->size();
+    this->believe = Particle(rX,rY,rTheta);
 }
 
 void ParticleFilter::mergeAndNormalizeWeights(){
     assert(_distanceWeights.size() == _particles->size());
     assert(_angleWeights.size() == _particles->size());
-    double weightSum = 0;
+    double distWeightSum = 0;
+    double angleWeightSum = 0;
+    double totalWeightSum = 0;
     for(int i = 0; i < _particles->size(); i++){
         _particles->at(i).weight(_distanceWeights[i]*_angleWeights[i]);
-        weightSum += _particles->at(i).weight();
+        distWeightSum += _distanceWeights[i];
+        angleWeightSum += _angleWeights[i];
+        totalWeightSum += _distanceWeights[i]*_angleWeights[i];
     }
 
     for(int i = 0; i < _particles->size(); i++){
-        _particles->at(i).weight(_particles->at(i).weight()/weightSum);
+        if(distWeightSum == 0.0){
+            _particles->at(i).weight(_angleWeights[i]/angleWeightSum);
+        }else if(angleWeightSum == 0.0){
+            _particles->at(i).weight(_distanceWeights[i]/distWeightSum);
+        }else{
+            _particles->at(i).weight(_particles->at(i).weight()/totalWeightSum);
+            continue;
+        }
+
+        _particles->at(i).addNoise(10.0, 0.1);
+
+        if(_particles->at(i).weight() != _particles->at(i).weight()){
+            std::cout << "FUCKING NaN\n";
+            exit(0);
+        }
     }
 }
 
@@ -52,33 +86,45 @@ void ParticleFilter::updateVariance(Measurement measurement){
 }
 
 void ParticleFilter::addRandomParticles(int limit){
+    std::ifstream file("/dev/urandom", ios::in);
+    if(!file.is_open()){
+        std::cout << "error opening urandom" << std::endl;
+        exit(0);
+    }
+
+    int random;
     for(int i = 0; i < limit; i++){
+        if(i%10000)
+            file.read((char*)&random, sizeof(int));
+        srand(random);
         double width = _map->width();
         double height = _map->height();
         Particle tmp(
             Particle::randf()*width,
             Particle::randf()*height,
-            Particle::randf()*M_PI
+            (Particle::randf()*2.0*M_PI)-M_PI
         );
         _particles->push_back(tmp);
     }
+    file.close();
 }
 
 void ParticleFilter::dynamicModel(Particle command){
     std::vector<Particle>::iterator it;
 
+    command.theta(command.theta()*-1.0);
     for(it = _particles->begin(); it != _particles->end(); it++){
-        it->add(command);
+        it->addTheta(command);
         double sigma;
         if(command.x() == 0.0 && command.y() == 0.0)
-           sigma = 4.5;
+           sigma = 3.5;
         else
-           sigma = command.length()*0.15;
+           sigma = command.length()*0.3;
         double kappa;
         if(command.theta() == 0.0)
-           kappa = 0.3;
+           kappa = 0.1;
         else
-           kappa = (abs(command.angle())/M_PI)*0.6;
+           kappa = (abs(command.theta())/M_PI)*0.5;
         it->addNoise(sigma, kappa);
     }
 }
@@ -95,7 +141,7 @@ void ParticleFilter::observationModel(Measurement measurement){
 
         _angleWeights[w_count] = GaussianDist(
             measurement.measurement.angle(),
-            5.0e-04,
+            0.13,
             hypoAngle
         );
         Particle pDiff = *it;
@@ -104,7 +150,8 @@ void ParticleFilter::observationModel(Measurement measurement){
         double distance = pDiff.length();
         _distanceWeights[w_count] = GaussianDist(
             measurement.measurement.length(),
-            0.274, //sigma: something else here
+            //0.274, //sigma: something else here
+            16.0,
             distance
         );
         w_count++;
@@ -112,7 +159,7 @@ void ParticleFilter::observationModel(Measurement measurement){
 }
 
 double ParticleFilter::GaussianDist(double x, double sigma, double my = 0){
-    return (1.0/sqrt(2.0*M_PI*sigma))*exp(-1.0*(pow(my-x,2)/(2.0*sigma)));
+    return (1.0/sqrt(2.0*M_PI*sigma))*exp(-1.0*(pow(my-x,2.0)/(2.0*sigma)));
 }
 
 void ParticleFilter::resample(int limit){
@@ -144,11 +191,14 @@ void ParticleFilter::resample(int limit){
                 front = middle;
         }
 
-        while(_particles->at(front).weight() == 0.0)
+        while(_particles->at(front).weight() == 0.0){
             front--;
+        }
 
+        //cout << "front: " << front << "=" << _particles->at(front).weight() << std::endl;
         newParticles.push_back(_particles->at(front));
     }
+
 
     *_particles = newParticles;
 }

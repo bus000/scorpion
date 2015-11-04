@@ -105,7 +105,7 @@ void MapPresenter::fillField(cv::Mat img, Particle square, cv::Scalar color){
 
 void MapPresenter::drawRobot(cv::Mat img, Particle robot, cv::Scalar color){
     if(robot.x() < 0.0 || robot.y() < 0.0 ||
-            robot.x() > _wm->width() || robot.y() > _wm->height())
+            robot.x() >= _wm->width() || robot.y() >= _wm->height())
         return;
 
     float scale = (float)_PPS/(float)_wm->squareSize();
@@ -134,8 +134,11 @@ void MapPresenter::drawMap(cv::Mat img){
     for(int col = 0; col < cols; col++){
         double *colPtr = (*_wm)[col];
         for(int row = 0; row < rows; row++){
+            //std::cout << "Before" << std::endl << std::flush;
+            //std::cout << "FIELD: (" << col << ", " << row << ")" << std::endl << std::flush;
             double field = colPtr[row];
-            if(field)
+            //std::cout << "Value: " << field << std::endl << std::flush;
+            if(field > 0.001)
                 fillField(img, Particle(col, row), cv::Scalar(0x0,0x0,0x0));
         }
     }

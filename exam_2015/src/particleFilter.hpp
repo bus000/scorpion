@@ -9,6 +9,7 @@ public:
             double fallbackDistVar, double fallbackAngleVar);
     void filter(Measurement measurement, Particle command = Particle(0,0));
     void addRandomParticles(int limit);
+    Particle believe;
 
 private:
     std::vector<Particle> *_particles;
@@ -28,4 +29,5 @@ private:
     void resample(int limit);
     void resetWeights();
     void mergeAndNormalizeWeights();
+    void calcBelieve();
 };

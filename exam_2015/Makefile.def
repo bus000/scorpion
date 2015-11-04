@@ -1,6 +1,6 @@
 CXX			= g++
 CXXFLAGS	= -g -Wall -ansi -Werror
 CXXFLAGS	:= `pkg-config opencv playerc++ --cflags`
-LIBS		= `pkg-config opencv playerc++ --libs`
+LIBS		:= `pkg-config opencv playerc++ --libs` -lpthread
 MainExec 	= robot_runner
 

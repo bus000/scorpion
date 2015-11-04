@@ -5,13 +5,13 @@
 #include "particle.hpp"
 #include <stdio.h>
 
-#define DEFAULT_SPEED 0.1
-#define DEFAULT_TURN_SPEED 0.2
+#define DEFAULT_SPEED 0.4
+#define DEFAULT_TURN_SPEED 0.15
 
 #define GOOD_ENOUGH_POS 3.0
 #define GOOD_ENOUGH_ANGLE 0.05
 
-#define DELTA_POS_STOP 0.1
+#define DELTA_POS_STOP 0.2
 #define DELTA_ANGLE_STOP 0.05
 
 class DriveCtl{
