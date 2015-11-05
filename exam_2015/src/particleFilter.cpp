@@ -30,8 +30,11 @@ void ParticleFilter::filter(Measurement measurement, Particle command){
         observationModel(measurement);
 
         mergeAndNormalizeWeights();
-        if(this->resetFlag)
+        if(this->resetFlag){
+            calcBelieve();
+            cout << "RETURNING\n";
             return;
+        }
     }else{
         resetWeights();
     }
@@ -68,10 +71,8 @@ void ParticleFilter::mergeAndNormalizeWeights(){
         _particles->at(i).weight(_particles->at(i).weight()/totalWeightSum);
         if(_particles->at(i).weight() != _particles->at(i).weight()){
             int numbParticles = _particles->size();
-            _particles->clear();
-            addRandomParticles(numbParticles);
             resetFlag = true;
-            std::cout << "Resetting particles!!!" << std::endl;
+            std::cout << "Ignoring!!!" << std::endl;
             return;
         }
     }

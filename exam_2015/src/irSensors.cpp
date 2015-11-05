@@ -23,10 +23,11 @@ IRSensors::IRSensors(PlayerCc::PlayerClient *robot, unsigned int filterStrength)
 }
 
 bool IRSensors::obstacleInFront(){
+    return false;
     vector<Particle> obstacles = this->getObstacles();
 
     for(int i = 0; i < obstacles.size(); i++){
-        if(obstacles[i].length() < 30.0)
+        if(obstacles[i].length() < 25.0)
                 return true;
     }
 

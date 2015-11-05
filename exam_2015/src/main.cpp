@@ -69,8 +69,6 @@ bool driveAndMeasure(Particle command, void *_data){
         meas = data->camera->getMeasurement();
 
     data->filter->filter(meas, command);
-    if(data->filter->resetFlag)
-        return false;
 
     draw(data->presenter, data->particles, data->filter->believe);
     
@@ -83,17 +81,6 @@ bool driveAndMeasure(Particle command, void *_data){
         data->inFront = true;
         return false;
     }
-
-    //if(!meas.invalid){
-    //    for(int i = 0; i < data->landmarksSeen.size(); i++){
-    //        if(!data->landmarksSeen[i].compareCoord(meas.position))
-    //            data->landmarksSeen.push_back(meas.position);
-    //        if(data->landmarksSeen.size() > 1
-    //                && meas.position.compareCoord(*data->landmark))
-    //            return false;
-    //    }
-    //}
-
 
     return true;
 }
@@ -186,17 +173,12 @@ int main(int argc, char **argv){
 
     int targetNo = 1;
 
-    data.inLocalize = false;
     bool dropLocalize = false;
     while(true){
         Particle target = landmarks[targetNo];
         data.landmark = &target;
         data.landmarksSeen.clear();
-        if(!dropLocalize){
-            localize(&data, &driveCtl);
-            if(filter.resetFlag)
-                continue;
-        }
+        localize(&data, &driveCtl);
 
         dropLocalize = false;
 
@@ -211,33 +193,14 @@ int main(int argc, char **argv){
             driveCtl.setPose(believe);
             cout << "diff: (" << diff.x() << ", " << diff.y() << ")" << endl;
             driveCtl.gotoPose(diff, (void*)&data, &driveAndMeasure);
-            if(data.inFront){
-                cout << "INFRONT" << endl;
-                Particle escape = irSensor.escapeVector();
-                if(fabs(escape.angle()) < 0.1){
-                    if(escape.length() > 150.0){
-                        //wrong ir measurement
-                        dropLocalize = true;
-                        continue;
-                    }
+            while(data.inFront){
+                Particle esc = irSensor.escapeVector();
+                double sign = 1.0;
+                if(esc.angle() < 0.0)
+                    sign = -1.0;
 
-                    //turn 90 degrees
-                    double turnDirection = M_PI;
-                    if(escape.angle() < 0.0)
-                        turnDirection *= -1.0;
-                    driveCtl.turn(turnDirection, (void*)&data, &driveAndMeasure);
-                }else{
-                    double sign = 1.0;
-                    if(escape.angle() < 0.0)
-                        sign = -1.0;
-                    double turnAngle = fmax(escape.angle()*20.0, M_PI*sign/2.0);
-                    cout << "TurnAngle: " << turnAngle << endl << endl;
-                    driveCtl.turn(turnAngle, (void*)&data, &driveAndMeasure);
-                }
-
-                driveCtl.drive(100.0, (void*)&data, &driveAndMeasure);
-                if(!data.inFront)
-                    dropLocalize = true;
+                driveCtl.turn(M_PI/2.0*sign, (void*)&data, &driveAndMeasure);
+                driveCtl.drive(40.0, (void*)&data, &driveAndMeasure);
             }
         }else{
             if(targetNo == 3){
