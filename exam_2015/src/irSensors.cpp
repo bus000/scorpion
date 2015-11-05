@@ -108,15 +108,15 @@ Particle IRSensors::sensorAngle(int sensor)
 {
     switch (sensor) {
     case IrEastNorthEast:
-        return Particle(cos(20.0 * M_PI / 180.0), sin(20.0 * M_PI / 180.0));
+        return Particle(cos(-70.0 * M_PI / 180.0), sin(-70.0 * M_PI / 180.0));
     case IrWestNorthWest:
-        return Particle(cos(160.0 * M_PI / 180.0), sin(160.0 * M_PI / 180.0));
+        return Particle(cos(70.0 * M_PI / 180.0), sin(70.0 * M_PI / 180.0));
     case IrNorth:
-        return Particle(cos(90.0 * M_PI / 180.0), sin(90.0 * M_PI / 180.0));
+        return Particle(cos(0.0 * M_PI / 180.0), sin(0.0 * M_PI / 180.0));
     case IrNorthEast:
-        return Particle(cos(45.0 * M_PI / 180.0), sin(45.0 * M_PI / 180.0));
+        return Particle(cos(-45.0 * M_PI / 180.0), sin(-45.0 * M_PI / 180.0));
     case IrNorthWest:
-        return Particle(cos(135.0 * M_PI / 180.0), sin(135.0 * M_PI / 180.0));
+        return Particle(cos(45.0 * M_PI / 180.0), sin(45.0 * M_PI / 180.0));
     case IrNarrowNorthNorthWest:
         return Particle(cos(105.0 * M_PI / 180.0), sin(105.0 * M_PI / 180.0));
     case IrNarrowNorthNorthEast:

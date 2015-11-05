@@ -34,10 +34,11 @@ struct testData {
     MapPresenter *presenter;
     Particle *landmark;
     Particle *robot;
-    //IRSensors *irSensor;
+    IRSensors *irSensor;
     //Internal data
     vector<Particle> landmarksSeen;
     bool inFront;
+    bool inLocalize;
 };
 
 unsigned long timing(){
@@ -73,23 +74,25 @@ bool driveAndMeasure(Particle command, void *_data){
 
     draw(data->presenter, data->particles, data->filter->believe);
     
-    if(!meas.invalid && meas.measurement.length() < LANDMARK_STOP)
+    if(!meas.invalid && meas.measurement.length() < LANDMARK_STOP &&
+            data->landmark->compareCoord(meas.position))
         return false;
 
-    //if(!data->irSensor->obstacleInFront()){
-    //    data->inFront = true;
-    //    return false;
-    //}
-
-    if(!meas.invalid){
-        for(int i = 0; i < data->landmarksSeen.size(); i++){
-            if(!data->landmarksSeen[i].compareCoord(meas.position))
-                data->landmarksSeen.push_back(meas.position);
-            if(data->landmarksSeen.size() > 1
-                    && meas.position.compareCoord(*data->landmark))
-                return false;
-        }
+    if(data->irSensor->obstacleInFront() && command.theta() == 0.0){
+        cout << "InFront" << endl;
+        data->inFront = true;
+        return false;
     }
+
+    //if(!meas.invalid){
+    //    for(int i = 0; i < data->landmarksSeen.size(); i++){
+    //        if(!data->landmarksSeen[i].compareCoord(meas.position))
+    //            data->landmarksSeen.push_back(meas.position);
+    //        if(data->landmarksSeen.size() > 1
+    //                && meas.position.compareCoord(*data->landmark))
+    //            return false;
+    //    }
+    //}
 
 
     return true;
@@ -117,9 +120,13 @@ bool driveAndMeasure(Particle command, void *_data){
 //}
 
 void localize(testData *data, DriveCtl *driveCtl){
+    data->inLocalize = true;
+    cout << "in search mode" << endl;
     for(int i = 0; i < 2; i++){
         driveCtl->turn(M_PI, (void*)data, &driveAndMeasure);
     }
+    data->inLocalize = false;
+    cout << "out of search mode" << endl;
 }
 
 bool deltaTest(Particle delta, void *_data){
@@ -137,13 +144,13 @@ bool deltaTest(Particle delta, void *_data){
 }
 
 int main(int argc, char **argv){
-    //PlayerCc::PlayerClient robot("192.168.100.254");
-    PlayerCc::PlayerClient robot("localhost");
+    PlayerCc::PlayerClient robot("192.168.100.254");
+    //PlayerCc::PlayerClient robot("localhost");
 
     PlayerCc::Position2dProxy position(&robot);
     robot.SetDataMode(PLAYER_DATAMODE_PULL);
     robot.SetReplaceRule(true, PLAYER_MSGTYPE_DATA, -1);
-    //IRSensors irSensor(&robot, 5);
+    IRSensors irSensor(&robot, 5);
 
     vector<Particle> landmarks;
     landmarks.push_back(landmark1);
@@ -166,8 +173,7 @@ int main(int argc, char **argv){
     data.filter = &filter;
     data.particles = &particles;
     data.presenter = &presenter;
-    //data.irSensor = &irSensor;
-
+    data.irSensor = &irSensor;
 
     ///////////////////////////////////////////////////////////////////
    // driveCtl.turn(3.0*M_PI/4.0, &data, &deltaTest);
@@ -180,11 +186,20 @@ int main(int argc, char **argv){
 
     int targetNo = 1;
 
+    data.inLocalize = false;
+    bool dropLocalize = false;
     while(true){
         Particle target = landmarks[targetNo];
         data.landmark = &target;
         data.landmarksSeen.clear();
-        localize(&data, &driveCtl);
+        if(!dropLocalize){
+            localize(&data, &driveCtl);
+            if(filter.resetFlag)
+                continue;
+        }
+
+        dropLocalize = false;
+
         Particle believe = filter.believe;
         Particle diff = target;
         diff.sub(believe);
@@ -196,12 +211,34 @@ int main(int argc, char **argv){
             driveCtl.setPose(believe);
             cout << "diff: (" << diff.x() << ", " << diff.y() << ")" << endl;
             driveCtl.gotoPose(diff, (void*)&data, &driveAndMeasure);
-            //if(data.inFront){
-            //    Particle escape = irSensor.escapeVector();
-            //    cout << "we are escaping!!!" << endl;
-            //    cout << "length: " << escape.length() << endl;
-            //    cout << "angle: " << escape.angle() << endl;
-            //}
+            if(data.inFront){
+                cout << "INFRONT" << endl;
+                Particle escape = irSensor.escapeVector();
+                if(fabs(escape.angle()) < 0.1){
+                    if(escape.length() > 150.0){
+                        //wrong ir measurement
+                        dropLocalize = true;
+                        continue;
+                    }
+
+                    //turn 90 degrees
+                    double turnDirection = M_PI;
+                    if(escape.angle() < 0.0)
+                        turnDirection *= -1.0;
+                    driveCtl.turn(turnDirection, (void*)&data, &driveAndMeasure);
+                }else{
+                    double sign = 1.0;
+                    if(escape.angle() < 0.0)
+                        sign = -1.0;
+                    double turnAngle = fmax(escape.angle()*20.0, M_PI*sign/2.0);
+                    cout << "TurnAngle: " << turnAngle << endl << endl;
+                    driveCtl.turn(turnAngle, (void*)&data, &driveAndMeasure);
+                }
+
+                driveCtl.drive(100.0, (void*)&data, &driveAndMeasure);
+                if(!data.inFront)
+                    dropLocalize = true;
+            }
         }else{
             if(targetNo == 3){
                 //Never gonna happen

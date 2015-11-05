@@ -5,7 +5,7 @@
 #include "particle.hpp"
 #include <stdio.h>
 
-#define DEFAULT_SPEED 0.4
+#define DEFAULT_SPEED 0.1
 #define DEFAULT_TURN_SPEED 0.15
 
 #define GOOD_ENOUGH_POS 3.0

@@ -129,7 +129,7 @@ Particle DriveCtl::drive( double dist
 
         Particle delta = currentPose;
         delta.sub(lastPose);
-        delta.theta(0);
+        delta.theta(0.0);
 
         if (diff.length() < GOOD_ENOUGH_POS)
             break;
