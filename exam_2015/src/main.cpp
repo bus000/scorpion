@@ -35,6 +35,7 @@ struct testData {
     Particle *landmark;
     Particle *robot;
     IRSensors *irSensor;
+    DriveCtl *driveCtl;
     //Internal data
     vector<Particle> landmarksSeen;
     bool inFront;
@@ -59,6 +60,52 @@ void draw(MapPresenter *presenter, vector<Particle> *particles, Particle robot){
     cv::imshow("window", img);
 }
 
+bool updateAndMeasure(Particle command, void *_data) {
+    testData *data = (testData*)_data;
+
+    Measurement meas;
+    meas.invalid = true;
+
+    if(data->camera->hasMeasurement())
+        meas = data->camera->getMeasurement();
+
+    data->filter->filter(meas, command);
+
+    draw(data->presenter, data->particles, data->filter->believe);
+    return true;
+}
+
+bool stopWhenFree(Particle command, void *_data){
+    testData *data = (testData*)_data;
+    updateAndMeasure(command, _data);
+
+    vector<Particle> obstacles = data->irSensor->getObstacles();
+    if(obstacles.size() == 0)
+        return false;
+    else
+        return true;
+}
+
+void turnAwayFromObstacle(testData *_data) {
+    testData *data = (testData*)_data;
+    vector<Particle> obstacles = data->irSensor->getObstacles();
+    
+    Particle sumVec(0, 0);
+
+    for (int i = 0; i < obstacles.size(); i++) {
+        sumVec.add(obstacles[i]);
+    }
+
+    if (sumVec.y() >= 0.0) {
+        data->driveCtl->turn(M_PI, data, &stopWhenFree);
+    }
+    else if (sumVec.y() < 0.0) {
+        data->driveCtl->turn(-1.0*M_PI, data, &stopWhenFree);
+    }
+
+    data->driveCtl->drive(50.0, data, &updateAndMeasure);
+}
+
 bool driveAndMeasure(Particle command, void *_data){
     unsigned long t = timing();
     testData *data = (testData*)_data;
@@ -76,8 +123,9 @@ bool driveAndMeasure(Particle command, void *_data){
             data->landmark->compareCoord(meas.position))
         return false;
 
-    if(data->irSensor->obstacleInFront() && command.theta() == 0.0){
-        cout << "InFront" << endl;
+    vector<Particle> obstacles = data->irSensor->getObstacles();
+
+    if (obstacles.size() > 0 && command.theta() == 0.0) {
         data->inFront = true;
         return false;
     }
@@ -161,6 +209,7 @@ int main(int argc, char **argv){
     data.particles = &particles;
     data.presenter = &presenter;
     data.irSensor = &irSensor;
+    data.driveCtl = &driveCtl;
 
     ///////////////////////////////////////////////////////////////////
    // driveCtl.turn(3.0*M_PI/4.0, &data, &deltaTest);
@@ -193,14 +242,9 @@ int main(int argc, char **argv){
             driveCtl.setPose(believe);
             cout << "diff: (" << diff.x() << ", " << diff.y() << ")" << endl;
             driveCtl.gotoPose(diff, (void*)&data, &driveAndMeasure);
-            while(data.inFront){
-                Particle esc = irSensor.escapeVector();
-                double sign = 1.0;
-                if(esc.angle() < 0.0)
-                    sign = -1.0;
-
-                driveCtl.turn(M_PI/2.0*sign, (void*)&data, &driveAndMeasure);
-                driveCtl.drive(40.0, (void*)&data, &driveAndMeasure);
+            if (data.inFront){
+                turnAwayFromObstacle(&data);
+                driveCtl.gotoPose(diff, (void*)&data, &driveAndMeasure);
             }
         }else{
             if(targetNo == 3){

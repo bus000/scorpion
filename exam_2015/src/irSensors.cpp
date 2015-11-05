@@ -27,8 +27,8 @@ bool IRSensors::obstacleInFront(){
     vector<Particle> obstacles = this->getObstacles();
 
     for(int i = 0; i < obstacles.size(); i++){
-        if(obstacles[i].length() < 25.0)
-                return true;
+        if(obstacles[i].y() == 0.0 && obstacles[i].length() > 25.0)
+            return true;
     }
 
     return false;
@@ -51,7 +51,8 @@ Particle IRSensors::escapeVector() {
         if (i == IR_te_nne || i == IR_te_nnw ||
             i == IR_tw_nne || i == IR_tw_nnw ||
             i == IR_bs_w   || i == IR_bs_e   ||
-            i == IR_bw_s   || i == IR_be_s)
+            i == IR_bw_s   || i == IR_be_s   ||
+            i == IR_bn_nw  || i == IR_bn_ne)
             continue;   
 
         average = sensorData[i] / (double) this->filterStrength;
@@ -83,7 +84,8 @@ vector<Particle> IRSensors::getObstacles(void)
         if (i == IR_te_nne || i == IR_te_nnw ||
             i == IR_tw_nne || i == IR_tw_nnw ||
             i == IR_bs_w   || i == IR_bs_e   ||
-            i == IR_bw_s   || i == IR_be_s)
+            i == IR_bw_s   || i == IR_be_s   ||
+            i == IR_bn_nw  || i == IR_bn_ne)
             continue;   
 
         average = sensorData[i] / (double) this->filterStrength;
